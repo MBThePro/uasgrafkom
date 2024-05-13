@@ -1,10 +1,11 @@
 import './style.css'
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { OrbitControls, ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { rotate } from 'three/examples/jsm/nodes/Nodes.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { TextureLoader } from 'three';
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth,window.innerHeight);
@@ -58,6 +59,20 @@ const onProgress = function ( xhr ) {
   }
 
 };
+
+const textureLoader = new THREE.TextureLoader()
+const textureCube = textureLoader.load('resources/snow.png')
+
+// Lantai
+{
+  var lantai = new THREE.BoxGeometry(100,4,100);
+  var lantaiMat = new THREE.MeshStandardMaterial({
+    map:textureCube
+})
+  var mesh = new THREE.Mesh(lantai, lantaiMat)
+  mesh.position.set(0,-2,0)
+  scene.add(mesh)
+}
 
 new MTLLoader()
 	.setPath( 'resources/' )
