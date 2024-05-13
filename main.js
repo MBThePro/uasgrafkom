@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { rotate } from 'three/examples/jsm/nodes/Nodes.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth,window.innerHeight);
@@ -34,8 +36,8 @@ light = new THREE.HemisphereLight(0xB1E1FF,0xB97A20,0.5)
 scene.add(light)
 
 // Point light
-light = new THREE.PointLight(0xFFFF00, 50)
-light.position.set(10,10,0)
+light = new THREE.PointLight(0xFFFF00, 100)
+light.position.set(0,10,0)
 scene.add(light)
 
 //Spot light
@@ -45,33 +47,6 @@ scene.add(light)
 
 //Geometry
 const objects = [];
-
-//Planet
-{
-  var planetGeo = new THREE.PlaneGeometry(40,40);
-  var planetMat = new THREE.MeshPhongMaterial({color: '#8AC'});
-  var mesh = new THREE.Mesh(planetGeo,planetMat)
-  mesh.rotation.x = Math.PI * -0.5;
-  scene.add(mesh);
-}
-
-//Cube
-{
-  var cubeGeo = new THREE.BoxGeometry(4,4,4);
-  var cubeMat = new THREE.MeshPhongMaterial({color: '#8AC'})
-  mesh = new THREE.Mesh(cubeGeo, cubeMat)
-  mesh.position.set(5,3.5,8)
-  scene.add(mesh)
-}
-
-//Sphere
-{
-  var sphereGeo = new THREE.SphereGeometry(3,32,16)
-  var sphereMat = new THREE.MeshPhongMaterial({color: '#CAB'})
-  mesh = new THREE.Mesh(sphereGeo,sphereMat)
-  mesh.position.set(-4,-5,0)
-  scene.add(mesh)
-}
 
 const onProgress = function ( xhr ) {
 
@@ -84,67 +59,44 @@ const onProgress = function ( xhr ) {
 
 };
 
-// Load texture
-var textureLoader = new THREE.TextureLoader();
-var texture = textureLoader.load("resources/texture/Park1.png");
+new MTLLoader()
+	.setPath( 'resources/' )
+	.load( 'stan marsh.mtl', function ( materials ) {
 
-// Set up materials
-const materials = [
-    new THREE.MeshBasicMaterial({ map: texture }) // You might want to use a different material type depending on your needs
-];
+	materials.preload();
 
-// Load OBJ file
-new OBJLoader()
-.setMaterials(materials)
-    .setPath('resources/source/')
-    .load('Stan.obj', function (object) {
-      
-        object.scale.setScalar(0.01);
-        scene.add(object);
-    }, onProgress);
+	new OBJLoader()
+		.setMaterials( materials )
+		.setPath( 'resources/' )
+		.load( 'stan marsh.obj', function ( object ) {
+      object.scale.setScalar(10)
+      object.rotation.y = 1.5
+      object.position.x = -20
+			scene.add( object );
 
-// new MTLLoader()
-// 	.setPath( 'resources/textures/' )
-// 	.load( 'Park1.png', function ( materials ) {
+		}, onProgress );
 
-//   materials.preload();
+} );
 
-//   new OBJLoader()
-//     .setMaterials( materials )
-//     .setPath( 'resources/source/' )
-//     .load( 'Stan.obj', function ( object ) {
-//       object.scale.setScalar(0.01)
-//       scene.add( object );
+new MTLLoader()
+	.setPath( 'resources/' )
+	.load( 'kyle.mtl', function ( materials ) {
 
-//     }
-//     , onProgress );
+	materials.preload();
 
-// } );
+	new OBJLoader()
+		.setMaterials( materials )
+		.setPath( 'resources/' )
+		.load( 'kyle.obj', function ( object ) {
+      object.scale.setScalar(10)
+      object.rotation.y = -1.5
+      object.useEnvironment
+      object.position.x = 20
+			scene.add( object );
 
-//sun
-var radius = 1;
-var widthSegments = 12;
-var heightSegments = 3;
-var geometry = new THREE.SphereGeometry(radius,widthSegments
-  ,heightSegments);
-var material = new THREE.MeshBasicMaterial({color:0xffff00});
-var sun = new THREE.Mesh(geometry,material);
-scene.add(sun);
-objects.push(sun);
+		}, onProgress );
 
-//earth
-radius = 0.33;
-widthSegments = 12;
-heightSegments = 3;
-geometry = new THREE.SphereGeometry(radius,widthSegments
-  ,heightSegments);
-material = new THREE.MeshBasicMaterial({color:0x00AAFF});
-var earth = new THREE.Mesh(geometry,material);
-earth.position.x = 2;
-scene.add(earth);
-objects.push(earth);
-
-sun.add(earth);
+} );
 
 var time_prev = 0;
 function animate(time){
