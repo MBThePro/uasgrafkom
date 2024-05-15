@@ -8,6 +8,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const clock = new THREE.Clock();
 
 let mixer;
+let mixer1;
+
 const forestLoader = new GLTFLoader();
 forestLoader.load('resources/Environment.glb', function(forest) {
     const forestModel = forest.scene;
@@ -23,13 +25,10 @@ stagLoader.load('resources/Stag.glb', function(stag) {
     model.scale.set(5,5,5);
     model.position.set(30,3,40);
     model.traverse( function ( child ) {
-
         if ( child.isMesh ) {
             child.castShadow = true;
             child.receiveShadow = true;
-
         }
-
     });
 
     const clips = stag.animations;
@@ -38,6 +37,28 @@ stagLoader.load('resources/Stag.glb', function(stag) {
     const eatingClip = THREE.AnimationClip.findByName(clips, "Eating");
     const eatingAction = mixer.clipAction(eatingClip);
     eatingAction.play();
+});
+
+const stagWalkLoader = new GLTFLoader();
+var walkModel;
+stagWalkLoader.load('resources/Stag.glb', function(stagWalk) {
+    walkModel = stagWalk.scene;
+    scene.add(walkModel);
+    walkModel.scale.set(5,5,5);
+    walkModel.position.set(-30,3,-40);
+    walkModel.traverse( function ( child ) {
+        if ( child.isMesh ) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+        }
+    });
+
+    const walkClips = stagWalk.animations;
+    mixer1 = new THREE.AnimationMixer( walkModel );
+
+    const walkClip = THREE.AnimationClip.findByName(walkClips, "Walk");
+    const walkAction = mixer1.clipAction(walkClip);
+    walkAction.play();
 });
 
 //Setup canvas render
@@ -74,6 +95,8 @@ scene.add(dLight);
 dLight.position.set(4, 10, 3);
 
 scene.fog = new THREE.Fog( 0x88939e, 100, 250);
+var stagSpeed = 0.1
+var rotateStag = false
 
 // loop animate
 function animate() {
@@ -84,6 +107,33 @@ function animate() {
 
     const delta = clock.getDelta();
 
-	if ( mixer ) mixer.update( delta );
+    if ( mixer ) mixer.update( delta )   
+    if ( mixer1 ) mixer1.update( delta )   
+
+    walkModel.position.z += stagSpeed
+
+    if (walkModel.position.z >= 1) {
+        rotateStag = true
+        stagSpeed *= -1
+    } else if (walkModel.position.z < -40) {
+        rotateStag = false
+        stagSpeed *= -1
+    }
+
+    if (rotateStag) {
+        if (walkModel.rotation.y <= Math.PI) {
+            walkModel.rotation.y += 0.025
+        }
+    } else {
+        if (walkModel.rotation.y >= 0) {
+            walkModel.rotation.y -= 0.025
+        }
+    }
+
+    console.log(walkModel.position.z)
+
+
+
+
 }
 requestAnimationFrame(animate);
