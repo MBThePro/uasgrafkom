@@ -23,7 +23,8 @@ stagLoader.load('resources/Stag.glb', function(stag) {
     const model = stag.scene;
     scene.add(model);
     model.scale.set(5,5,5);
-    model.position.set(30,3,40);
+    model.position.set(50,3,55);
+    model.rotation.set(0,5,0);
     model.traverse( function ( child ) {
         if ( child.isMesh ) {
             child.castShadow = true;
@@ -45,7 +46,7 @@ stagWalkLoader.load('resources/Stag.glb', function(stagWalk) {
     walkModel = stagWalk.scene;
     scene.add(walkModel);
     walkModel.scale.set(5,5,5);
-    walkModel.position.set(-30,3,-40);
+    walkModel.position.set(-60,3,-40);
     walkModel.traverse( function ( child ) {
         if ( child.isMesh ) {
             child.castShadow = true;
@@ -87,10 +88,10 @@ plane.receiveShadow = true;
 plane.rotation.x = -Math.PI / 2;
 scene.add(plane);
 
-var ambientLight = new THREE.AmbientLight(0x88939e, 0.8);
+var ambientLight = new THREE.AmbientLight(0x33414d, 4);
 scene.add(ambientLight);
 
-const dLight = new THREE.DirectionalLight(0x47596b, 4);
+const dLight = new THREE.DirectionalLight(0x47596b, 8);
 scene.add(dLight);
 dLight.position.set(4, 10, 3);
 
@@ -112,10 +113,10 @@ function animate() {
 
     walkModel.position.z += stagSpeed
 
-    if (walkModel.position.z >= 1) {
+    if (walkModel.position.z >= 150) {
         rotateStag = true
         stagSpeed *= -1
-    } else if (walkModel.position.z < -40) {
+    } else if (walkModel.position.z < -60) {
         rotateStag = false
         stagSpeed *= -1
     }
