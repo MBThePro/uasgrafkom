@@ -175,9 +175,6 @@ const keys = {
 };
 
 function updateAnimation() {
-  if (!(keys.Shift && keys.w && keys.a && keys.s && keys.d)) {
-    switchAnimation(adventurerActions["idle"]);
-  }
   if (keys.Shift) {
     switchAnimation(adventurerActions["run"]);
   } else if (keys.Shift && (keys.w || keys.a || keys.s || keys.d)) {
