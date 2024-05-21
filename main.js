@@ -528,8 +528,7 @@ function animate() {
     if ( mixer ) mixer.update( delta )   
     if ( mixer1 ) mixer1.update( delta ) 
         
-    fpsCamera_.update(delta)
-    moveAdventurer()
+    fpsCamera_.update(delta);
 
     walkModel.position.z += stagSpeed
 

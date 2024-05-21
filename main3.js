@@ -1,29 +1,27 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
-import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { Player, PlayerController, ThirdPersonCamera } from "./adventurer.js";
 
-//clock
+// Clock
 const clock = new THREE.Clock();
-//mixer
-let mixer;
-let mixer1;
-let mixer2;
-//Sizes
+// Mixers
+let mixer, mixer1, mixer2;
+// Player
+let player;
+// Sizes
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
 
-//Setup canvas render
+// Setup canvas renderer
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(sizes.width, sizes.height);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// Setup scene dan camera
+// Setup scene and camera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -31,13 +29,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(0, 50, 0);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 20, 0);
-controls.update();
-
-//enviroment
+// Environment
 const forestLoader = new GLTFLoader();
 forestLoader.load("resources/Environment.glb", function (forest) {
   const forestModel = forest.scene;
@@ -46,7 +39,7 @@ forestLoader.load("resources/Environment.glb", function (forest) {
   forestModel.position.set(0, -15, 0);
 });
 
-//stag1
+// Stag 1
 const stagLoader = new GLTFLoader();
 stagLoader.load("resources/Stag.glb", function (stag) {
   const model = stag.scene;
@@ -62,13 +55,13 @@ stagLoader.load("resources/Stag.glb", function (stag) {
 
   const clips = stag.animations;
   mixer = new THREE.AnimationMixer(model);
-
   const eatingClip = THREE.AnimationClip.findByName(clips, "Eating");
   const eatingAction = mixer.clipAction(eatingClip);
   eatingAction.play();
 });
-//stag2(walk)
-var walkModel;
+
+// Stag 2 (walk)
+let walkModel;
 const stagWalkLoader = new GLTFLoader();
 stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel = stagWalk.scene;
@@ -84,15 +77,15 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
 
   const walkClips = stagWalk.animations;
   mixer1 = new THREE.AnimationMixer(walkModel);
-
   const walkClip = THREE.AnimationClip.findByName(walkClips, "Walk");
   const walkAction = mixer1.clipAction(walkClip);
   walkAction.play();
 });
 
-//adventurer
+// Adventurer
 const adventurerLoader = new GLTFLoader();
 let adventurerModel, adventurerActions, activeAction, previousAction;
+
 adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   adventurerModel = adventurer.scene;
   scene.add(adventurerModel);
@@ -131,16 +124,13 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   activeAction = adventurerActions["idle"];
   activeAction.play();
 
-  // Event listener, reset ke idle setelah wave, interact, death finish
-  adventurerActions["wave"].clampWhenFinished = true;
-  adventurerActions["wave"].loop = THREE.LoopOnce;
-  adventurerActions["death"].clampWhenFinished = true;
-  adventurerActions["death"].loop = THREE.LoopOnce;
-  adventurerActions["interact"].clampWhenFinished = true;
-  adventurerActions["interact"].loop = THREE.LoopOnce;
+  // Event listener, reset to idle after wave, interact, death finishes
+  ["wave", "interact", "death"].forEach((action) => {
+    adventurerActions[action].clampWhenFinished = true;
+    adventurerActions[action].loop = THREE.LoopOnce;
+  });
 
   mixer2.addEventListener("finished", (event) => {
-    // Check which action has finished
     if (
       event.action === adventurerActions["wave"] ||
       event.action === adventurerActions["interact"]
@@ -148,9 +138,25 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
       switchAnimation(adventurerActions["idle"]);
     }
   });
+  createPlayer();
 });
 
-function switchAnimation(newAction) {
+
+function createPlayer() {
+  player = new Player(
+    new ThirdPersonCamera(
+      camera,
+      new THREE.Vector3(0, 30, -20.5),
+      new THREE.Vector3(0, 30, 0)
+    ),
+    new PlayerController(),
+    scene,
+    10,
+    adventurerModel 
+  );
+}
+
+export function switchAnimation(newAction) {
   if (newAction !== activeAction) {
     previousAction = activeAction;
     activeAction = newAction;
@@ -158,93 +164,93 @@ function switchAnimation(newAction) {
     activeAction.reset().fadeIn(0.5).play();
   }
 }
+
 const keys = {
   w: false,
   a: false,
   s: false,
   d: false,
   Shift: false,
+  f: false
 };
-window.addEventListener("keydown", (event) => {
-  switch (event.key) {
-    case "w":
-      switchAnimation(adventurerActions["walk"]);
-      break;
-    case "a":
-      if (velocity.x === 0 && velocity.y === 0 && velocity.z === 0) {
-        switchAnimation(adventurerActions["idle"]);
-      } else {
-        switchAnimation(adventurerActions["walk"]);
-      }
-      break;
-    case "s":
-      switchAnimation(adventurerActions["walk"]);
-      break;
-    case "d":
-      if (velocity.x === 0 && velocity.y === 0 && velocity.z === 0) {
-        switchAnimation(adventurerActions["idle"]);
-      } else {
-        switchAnimation(adventurerActions["walk"]);
-      }
-      break;
-    case "Shift":
-      if (velocity.x === 0 && velocity.y === 0 && velocity.z === 0) {
-        switchAnimation(adventurerActions["idle"]);
-      } else {
-        switchAnimation(adventurerActions["run"]);
-      }
-      break;
-    case " ":
-      switchAnimation(adventurerActions["wave"]);
-      break;
-    case "x":
-      switchAnimation(adventurerActions["death"]);
-      break;
-    default:
-      switchAnimation(adventurerActions["idle"]);
+
+function updateAnimation() {
+  if (!(keys.Shift && keys.w && keys.a && keys.s && keys.d)) {
+    switchAnimation(adventurerActions["idle"]);
   }
+  if (keys.Shift) {
+    switchAnimation(adventurerActions["run"]);
+  } else if (keys.Shift && (keys.w || keys.a || keys.s || keys.d)) {
+    switchAnimation(adventurerActions["run"]);
+  } else if (keys.w || keys.a || keys.s || keys.d) {
+    switchAnimation(adventurerActions["walk"]);
+  } else {
+    switchAnimation(adventurerActions["idle"]);
+  }
+}
+window.addEventListener("keydown", (event) => {
+  if (event.key === "w") {
+    keys.w = true;
+  } else if (event.key === "a") {
+    keys.a = true;
+  } else if (event.key === "s") {
+    keys.s = true;
+  } else if (event.key === "d") {
+    keys.d = true;
+  } else if (event.key === "Shift") {
+    keys.Shift = true;
+  } else if (event.key === " ") {
+    switchAnimation(adventurerActions["wave"]);
+  } else if (event.key === "x") {
+    switchAnimation(adventurerActions["death"]);
+  }
+  
+  updateAnimation();
+});
+
+window.addEventListener("keyup", (event) => {
+  if (event.key === "w") {
+    keys.w = false;
+  } else if (event.key === "a") {
+    keys.a = false;
+  } else if (event.key === "s") {
+    keys.s = false;
+  } else if (event.key === "d") {
+    keys.d = false;
+  } else if (event.key === "Shift") {
+    keys.Shift = false;
+  }
+  updateAnimation();
 });
 
 window.addEventListener("mousedown", (event) => {
-  if (event.button === 2) {
+  if (event.button === 0) {
     switchAnimation(adventurerActions["interact"]);
   }
 });
-window.addEventListener("keyup", (event) => {
-  if (
-    event.key === "w" ||
-    event.key === "a" ||
-    event.key === "s" ||
-    event.key === "d"
-  ) {
-    switchAnimation(adventurerActions["idle"]);
-  }
-  if (event.key === "Shift") {
-    switchAnimation(adventurerActions["idle"]);
-  }
-});
+
 // Plane
-var planeGeo = new THREE.PlaneGeometry(300, 300, 10, 10);
-var planeMat = new THREE.MeshPhongMaterial({ color: 0x638f32 });
-var plane = new THREE.Mesh(planeGeo, planeMat);
+const planeGeo = new THREE.PlaneGeometry(300, 300, 10, 10);
+const planeMat = new THREE.MeshPhongMaterial({ color: 0x638f32 });
+const plane = new THREE.Mesh(planeGeo, planeMat);
 plane.castShadow = true;
 plane.receiveShadow = true;
 plane.rotation.x = -Math.PI / 2;
 scene.add(plane);
 
 // Light
-var ambientLight = new THREE.AmbientLight(0x88939e, 0.8);
+const ambientLight = new THREE.AmbientLight(0x88939e, 0.8);
 scene.add(ambientLight);
 const dLight = new THREE.DirectionalLight(0x47596b, 4);
 scene.add(dLight);
 dLight.position.set(4, 10, 3);
 
-//Others
+// Others
 scene.fog = new THREE.Fog(0x88939e, 100, 250);
-var stagSpeed = 0.1;
-var rotateStag = false;
+let stagSpeed = 0.1;
+let rotateStag = false;
 
-//Resize
+// Resize
 window.addEventListener("resize", () => {
   sizes.height = window.innerHeight;
   sizes.width = window.innerWidth;
@@ -253,10 +259,10 @@ window.addEventListener("resize", () => {
   renderer.setSize(sizes.width, sizes.height);
 });
 
-// loop animate
+
+// Animate loop
 function animate() {
   renderer.setClearColor(0x88939e);
-
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 
@@ -264,6 +270,9 @@ function animate() {
   if (mixer) mixer.update(delta);
   if (mixer1) mixer1.update(delta);
   if (mixer2) mixer2.update(delta);
+  if (adventurerModel) {
+    player.update(delta);
+  }
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
