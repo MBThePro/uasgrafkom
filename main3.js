@@ -1,12 +1,12 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Player, PlayerController, ThirdPersonCamera } from "./adventurer.js";
 
 // Clock
 const clock = new THREE.Clock();
 // Mixers
-let mixer, mixer1, mixer2;
+let mixer, mixer1, mixer2, mixer3;
 // Player
 let player;
 // Sizes
@@ -141,6 +141,7 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
 });
 
 
+
 function createPlayer() {
   player = new Player(
     new ThirdPersonCamera(
@@ -151,7 +152,8 @@ function createPlayer() {
     new PlayerController(),
     scene,
     10,
-    adventurerModel 
+    adventurerModel,
+    renderer
   );
 }
 
@@ -173,6 +175,8 @@ const keys = {
 };
 
 function updateAnimation() {
+  if (!adventurerActions) return
+  
   if (keys.Shift) {
     switchAnimation(adventurerActions["run"]);
   } else if (keys.Shift && (keys.w || keys.a || keys.s || keys.d)) {

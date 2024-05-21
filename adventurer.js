@@ -1,13 +1,15 @@
 import * as THREE from "three";
 
 export class Player {
-  constructor(camera, controller, scene, speed, adventurerModel) {
+  constructor(camera, controller, scene, speed, adventurerModel,renderer) {
     this.camera = camera;
     this.controller = controller;
     this.scene = scene;
     this.speed = speed;
     this.adventurerModel = adventurerModel;
     this.camera.setup(new THREE.Vector3(3, 0, 0));
+    this.renderer = renderer;
+
   }
 
   update(dt) {
@@ -44,14 +46,26 @@ export class Player {
     this.adventurerModel.position.add(direction);
 
     this.camera.setup(this.adventurerModel.position);
+let keyState = {};
 
-    window.addEventListener("keydown", (event) => {
-      if (event.key == "f") {
-        this.camera.positionOffset.z = -0.5;
-      } else if (event.key == "t") {
-        this.camera.positionOffset.z = -20.5;
-      }
-    });
+window.addEventListener("keydown", (event) => {
+  keyState[event.key] = true; 
+});
+
+//Zoom in/Out
+window.addEventListener("keyup", (event) => {
+  if (event.key === "f") {
+    this.camera.positionOffset.z = -0.5;
+  } else if (event.key === "t") {
+    this.camera.positionOffset.z = -20.5;
+  }
+  if (event.key === "z" && !keyState[event.key]) { 
+    console.log(this.camera.positionOffset.z);
+    if(this.camera.positionOffset.z <= 0) this.camera.positionOffset.z += 0.1;
+    else this.camera.positionOffset.z = -20.5;
+  }
+  keyState[event.key] = false; 
+  });
   }
 }
 
