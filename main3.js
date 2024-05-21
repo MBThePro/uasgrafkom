@@ -124,7 +124,6 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   activeAction = adventurerActions["idle"];
   activeAction.play();
 
-  // Event listener, reset to idle after wave, interact, death finishes
   ["wave", "interact", "death"].forEach((action) => {
     adventurerActions[action].clampWhenFinished = true;
     adventurerActions[action].loop = THREE.LoopOnce;
@@ -170,8 +169,7 @@ const keys = {
   a: false,
   s: false,
   d: false,
-  Shift: false,
-  f: false
+  Shift: false
 };
 
 function updateAnimation() {
@@ -196,13 +194,9 @@ window.addEventListener("keydown", (event) => {
     keys.d = true;
   } else if (event.key === "Shift") {
     keys.Shift = true;
-  } else if (event.key === " ") {
-    switchAnimation(adventurerActions["wave"]);
-  } else if (event.key === "x") {
-    switchAnimation(adventurerActions["death"]);
-  }
-  
+  } 
   updateAnimation();
+  
 });
 
 window.addEventListener("keyup", (event) => {
@@ -218,13 +212,17 @@ window.addEventListener("keyup", (event) => {
     keys.Shift = false;
   }
   updateAnimation();
-});
-
-window.addEventListener("mousedown", (event) => {
-  if (event.button === 0) {
+  if (event.key === "i") {
     switchAnimation(adventurerActions["interact"]);
   }
+  if (event.key === " ") {
+    switchAnimation(adventurerActions["wave"]);
+  }
+  if (event.key === "x") {
+    switchAnimation(adventurerActions["death"]);
+  }
 });
+
 
 // Plane
 const planeGeo = new THREE.PlaneGeometry(300, 300, 10, 10);
