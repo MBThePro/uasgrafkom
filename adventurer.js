@@ -1,71 +1,66 @@
 import * as THREE from "three";
 
 export class Player {
-  constructor(camera, controller, scene, speed, adventurerModel,renderer) {
+  constructor(camera, controller, scene, speed, adventurerModel, renderer) {
     this.camera = camera;
     this.controller = controller;
     this.scene = scene;
     this.speed = speed;
     this.adventurerModel = adventurerModel;
-    this.camera.setup(new THREE.Vector3(3, 0, 0));
+    this.camera.setup(new THREE.Vector3(3, 0, 0), new THREE.Euler(0, 0, 0));
     this.renderer = renderer;
+    this.rotationSpeed = Math.PI / 2; // Rotation speed in radians per second
+    this.currentRotation = new THREE.Euler(0, 0, 0); // Current rotation angle in radians
 
+    window.addEventListener("keydown", (event) => this.onKeyDown(event), false);
+    window.addEventListener("keyup", (event) => this.onKeyUp(event), false);
   }
 
+  onKeyDown(event) {
+    if (event.key === 'z') {
+      if ((this.camera.positionOffset.z+=0.5) < 0) {
+        this.camera.positionOffset.z += 0.5;
+        console.log(this.camera.positionOffset.z);
+      } else {
+        this.camera.positionOffset.z = -20.5;
+      }
+    }
+  }
+
+  onKeyUp(event) {
+    if (event.key === 'f') {
+      this.camera.positionOffset.z = -0.5;
+    } else if (event.key === 't') {
+      this.camera.positionOffset.z = -20.5;
+    }
+  }
   update(dt) {
     var direction = new THREE.Vector3(0, 0, 0);
-    var moveDirection = new THREE.Vector3(0, 0, 0); // For rotation
 
     if (this.controller.keys["forward"]) {
       direction.z += this.speed * dt;
-      moveDirection.z += 1;
     }
     if (this.controller.keys["backward"]) {
       direction.z -= this.speed * dt;
-      moveDirection.z -= 1;
     }
     if (this.controller.keys["left"]) {
-      direction.x += this.speed * dt;
-      moveDirection.x += 1;
+      this.currentRotation.y += this.rotationSpeed * dt;
     }
     if (this.controller.keys["right"]) {
-      direction.x -= this.speed * dt;
-      moveDirection.x -= 1;
+      this.currentRotation.y -= this.rotationSpeed * dt;
     }
     if (this.controller.keys["Shift"]) {
       direction.multiplyScalar(2);
     }
 
-    if (!moveDirection.equals(new THREE.Vector3(0, 0, 0))) {
-      moveDirection.normalize();
-      var targetPosition = new THREE.Vector3();
-      targetPosition.addVectors(this.adventurerModel.position, moveDirection);
-      this.adventurerModel.lookAt(targetPosition);
-    }
+    // Calculate new direction based on current rotation
+    const moveDirection = new THREE.Vector3(Math.sin(this.currentRotation.y), 0, Math.cos(this.currentRotation.y));
+    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.currentRotation.y);
 
     this.adventurerModel.position.add(direction);
+    this.adventurerModel.rotation.copy(this.currentRotation); // Update character rotation
 
-    this.camera.setup(this.adventurerModel.position);
-let keyState = {};
-
-window.addEventListener("keydown", (event) => {
-  keyState[event.key] = true; 
-});
-
-//Zoom in/Out
-window.addEventListener("keyup", (event) => {
-  if (event.key === "f") {
-    this.camera.positionOffset.z = -0.5;
-  } else if (event.key === "t") {
-    this.camera.positionOffset.z = -20.5;
-  }
-  if (event.key === "z" && !keyState[event.key]) { 
-    console.log(this.camera.positionOffset.z);
-    if(this.camera.positionOffset.z <= 0) this.camera.positionOffset.z += 0.1;
-    else this.camera.positionOffset.z = -20.5;
-  }
-  keyState[event.key] = false; 
-  });
+    this.camera.setup(this.adventurerModel.position, this.adventurerModel.rotation);
   }
 }
 
@@ -139,12 +134,22 @@ export class ThirdPersonCamera {
     this.targetOffset = targetOffset;
   }
 
-  setup(target) {
-    var temp = new THREE.Vector3();
-    temp.addVectors(target, this.positionOffset);
-    this.camera.position.copy(temp);
-    temp = new THREE.Vector3();
-    temp.addVectors(target, this.targetOffset);
-    this.camera.lookAt(temp);
+  setup(target, rotation) {
+    if (!rotation || !(rotation instanceof THREE.Euler)) {
+      console.error("Rotation parameter is missing or not an instance of THREE.Euler");
+      return;
+    }
+
+    // Update camera position based on character rotation
+    const offset = this.positionOffset.clone();
+    offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.y);
+
+    const cameraPosition = new THREE.Vector3();
+    cameraPosition.addVectors(target, offset);
+    this.camera.position.copy(cameraPosition);
+
+    const lookAtTarget = new THREE.Vector3();
+    lookAtTarget.addVectors(target, this.targetOffset);
+    this.camera.lookAt(lookAtTarget);
   }
 }
