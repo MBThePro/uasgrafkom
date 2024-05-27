@@ -147,7 +147,7 @@ function createPlayer() {
     new ThirdPersonCamera(
       camera,
       new THREE.Vector3(0, 30, -20.5),
-      new THREE.Vector3(0, 30, 0)
+      new THREE.Vector3(0, 30, -0.5)
     ),
     new PlayerController(),
     scene,

@@ -49,7 +49,6 @@ class InputController {
       if (this.previous_ === null) {
         this.previous_ = {...this.current_};
       }
-  
       this.current_.mouseXDelta = this.current_.mouseX - this.previous_.mouseX;
       this.current_.mouseYDelta = this.current_.mouseY - this.previous_.mouseY;
     }
@@ -192,7 +191,6 @@ class FirstPersonCamera {
     updateRotation_(timeElapsedS) {
       const xh = this.input_.current_.mouseXDelta / window.innerWidth;
       const yh = this.input_.current_.mouseYDelta / window.innerHeight;
-  
       this.phi_ += -xh * this.phiSpeed_;
       this.theta_ = clamp(this.theta_ + -yh * this.thetaSpeed_, -Math.PI / 3, Math.PI / 3);
   
