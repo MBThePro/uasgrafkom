@@ -7,16 +7,22 @@ export class Player {
     this.scene = scene;
     this.speed = speed;
     this.adventurerModel = adventurerModel;
+    
     this.renderer = renderer;
     this.rotationSpeed = Math.PI / 2;
     this.currentRotation = new THREE.Euler(0, 0, 0);
     this.rotationVector = new THREE.Vector3();
-    this.cameraBaseOffset = new THREE.Vector3(0, 30, -20.5);
+    this.cameraBaseOffset = new THREE.Vector3(0, 30, -20.5); // For TPP
+    this.cameraHeadOffset = new THREE.Vector3(0, 30, 0); // For FPP
+    this.zoomLevel = 0;
+    this.zoomIncrement = 5;
     this.camera.positionOffset = this.cameraBaseOffset.clone();
     this.camera.targetOffset = new THREE.Vector3(0, 30, 0);
     this.mouseLookSpeed = 1.5;
     this.cameraRotationY = 0;
-
+    this.cameraRotationZ = 0;
+    this.isFpp = false;
+    this.isZoomed = false;
     this.camera.setup(this.adventurerModel.position, this.currentRotation);
   }
 
@@ -40,12 +46,13 @@ export class Player {
       direction.multiplyScalar(2);
     }
     if (this.controller.keys["fpp"]) {
-      this.cameraBaseOffset.z = -0.5;
-      this.camera.positionOffset.copy(this.cameraBaseOffset);
+      this.isFpp = true;
+      this.camera.positionOffset.copy(this.cameraHeadOffset); // Set to head position for FPP
     }
     if (this.controller.keys["tpp"]) {
-      this.cameraBaseOffset.z = -20.5;
-      this.camera.positionOffset.copy(this.cameraBaseOffset);
+      this.isFpp = false;
+      this.camera.positionOffset.copy(this.cameraBaseOffset); // Set to default for TPP
+      this.cameraRotationZ = 0;
     }
     if (this.controller.keys["rotateLeft"]) {
       this.cameraRotationY += this.rotationSpeed * dt;
@@ -53,14 +60,48 @@ export class Player {
     if (this.controller.keys["rotateRight"]) {
       this.cameraRotationY -= this.rotationSpeed * dt;
     }
-
+    if (this.controller.keys["zoomIn"]) {
+      this.zoomLevel -= this.zoomIncrement;
+      const zoomFactor = this.zoomLevel * 0.1;
+      if (!this.isFpp && -20.5 - zoomFactor < -0) {
+        const zoomedOffset = new THREE.Vector3(0, 30, -20.5 - zoomFactor);
+        this.camera.positionOffset.copy(zoomedOffset);
+      }
+    }
+    if (this.controller.keys["zoomOut"]) {
+      this.zoomLevel += this.zoomIncrement;
+      if (!this.isFpp) {
+        const zoomFactor = this.zoomLevel * 0.1;
+        const zoomedOffset = new THREE.Vector3(0, 30, -20.5 - zoomFactor);
+        this.camera.positionOffset.copy(zoomedOffset);
+      }
+    }
+    if (this.controller.keys["resetZoom"]) {
+      this.zoomLevel = 0;
+      if(this.isFpp) this.camera.positionOffset.copy(this.cameraHeadOffset)
+      else this.camera.positionOffset.copy(this.cameraBaseOffset);
+    }
+    const headTiltSpeed = 0.1;
+    if(this.isFpp){
     if (this.controller.keys["lookUp"]) {
-      this.cameraBaseOffset.z += 0.5;
+      this.cameraRotationZ = Math.min(
+        this.cameraRotationZ + this.rotationSpeed * dt,
+        15 * (Math.PI / 180)
+      );
     }
 
     if (this.controller.keys["lookDown"]) {
-      this.cameraBaseOffset.z -= 0.5;
+      this.cameraRotationZ = Math.max(
+        this.cameraRotationZ - this.rotationSpeed * dt,
+        -15 * (Math.PI / 180)
+      );
     }
+    }
+    this.currentRotation.z = THREE.MathUtils.lerp(
+      this.currentRotation.z,
+      this.cameraRotationZ,
+      headTiltSpeed
+    );
 
     if (this.controller.mouseDown) {
       var dtMouse = this.controller.deltaMousePos;
@@ -81,31 +122,36 @@ export class Player {
 
     // Reset
     this.rotationVector.set(0, 0, 0);
-    direction.applyAxisAngle(
-      new THREE.Vector3(1, 0, 0),
-      this.currentRotation.x
-    );
+
+    // Apply player rotation to direction vector
     direction.applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
       this.currentRotation.y
     );
-    direction.applyAxisAngle(
-      new THREE.Vector3(0, 0, 1),
-      this.currentRotation.z
-    );
+
+    if (this.isFpp) {
+      // Apply camera rotation in FPP
+      direction.applyAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        this.cameraRotationY
+      );
+    }
 
     this.adventurerModel.position.add(direction);
     this.adventurerModel.rotation.copy(this.currentRotation);
     this.camera.setup(
       this.adventurerModel.position,
       this.currentRotation,
-      this.cameraRotationY
+      this.cameraRotationY,
+      this.isFpp,
+      this.cameraRotationZ,
+      this.zoomLevel
     );
   }
 }
 
 export class PlayerController {
-  constructor() {
+  constructor(camera) {
     this.keys = {
       forward: false,
       backward: false,
@@ -118,10 +164,14 @@ export class PlayerController {
       lookDown: false,
       rotateLeft: false,
       rotateRight: false,
+      zoomIn: false,
+      zoomOut: false,
+      resetZoom: false,
     };
     this.mousePos = new THREE.Vector2();
     this.mouseDown = false;
     this.deltaMousePos = new THREE.Vector2();
+    this.camera = camera;
 
     document.addEventListener("keydown", (e) => this.onKeyDown(e), false);
     document.addEventListener("keyup", (e) => this.onKeyUp(e), false);
@@ -165,14 +215,21 @@ export class PlayerController {
       case "d":
         this.keys["right"] = true;
         break;
+      case "R":
+      case "r":
+        this.keys["resetZoom"] = true;
+        break;
       case "F":
       case "f":
-        this.keys["fpp"] = true;
+        this.keys["fpp"] = !this.keys["fpp"];
+        this.keys["tpp"] = false;
         break;
       case "T":
       case "t":
-        this.keys["tpp"] = true;
+        this.keys["tpp"] = !this.keys["tpp"];
+        this.keys["fpp"] = false;
         break;
+
       case "Shift":
         this.keys["Shift"] = true;
         break;
@@ -187,6 +244,12 @@ export class PlayerController {
         break;
       case "ArrowRight":
         this.keys["rotateRight"] = true;
+        break;
+      case "+":
+        this.keys["zoomIn"] = true;
+        break;
+      case "-":
+        this.keys["zoomOut"] = true;
         break;
     }
   }
@@ -209,13 +272,9 @@ export class PlayerController {
       case "d":
         this.keys["right"] = false;
         break;
-      case "f":
-      case "f":
-        this.keys["fpp"] = false;
-        break;
-      case "t":
-      case "t":
-        this.keys["tpp"] = false;
+      case "R":
+      case "r":
+        this.keys["resetZoom"] = false;
         break;
       case "Shift":
         this.keys["Shift"] = false;
@@ -232,6 +291,12 @@ export class PlayerController {
       case "ArrowRight":
         this.keys["rotateRight"] = false;
         break;
+      case "+":
+        this.keys["zoomIn"] = false;
+        break;
+      case "-":
+        this.keys["zoomOut"] = false;
+        break;
     }
   }
 }
@@ -241,23 +306,52 @@ export class ThirdPersonCamera {
     this.camera = camera;
     this.positionOffset = positionOffset;
     this.targetOffset = targetOffset;
+    this.cameraRotationZ = 0;
   }
 
-  setup(target, rotation, cameraRotationY = 0) {
+  setup(
+    target,
+    rotation,
+    cameraRotationY = 0,
+    isFpp = false,
+    cameraRotationZ = 0,
+    zoomLevel
+  ) {
     var temp = new THREE.Vector3();
     temp.copy(this.positionOffset);
+
     temp.applyAxisAngle(
       new THREE.Vector3(0, 1, 0),
       rotation.y + cameraRotationY
     );
 
-    temp.add(target);
+    if (!isFpp) {
+      temp.applyAxisAngle(
+        new THREE.Vector3(0, 0, 1),
+        rotation.z + cameraRotationZ
+      );
+    }
+
+    const zoomFactor = zoomLevel * 0.1;
+
+    if (isFpp) {
+      temp.set(target.x, target.y + 30, target.z - zoomFactor); // Set camera to head position for FPP
+    } else {
+      temp.add(target);
+    }
 
     this.camera.position.copy(temp);
 
-    // Use the same target point as before
-    var lookAtTarget = new THREE.Vector3();
-    lookAtTarget.addVectors(target, this.targetOffset);
-    this.camera.lookAt(lookAtTarget);
+    if (!isFpp) {
+      var lookAtTarget = new THREE.Vector3();
+      lookAtTarget.addVectors(target, this.targetOffset);
+      this.camera.lookAt(lookAtTarget);
+    } else {
+      this.camera.rotation.set(
+        rotation.x,
+        rotation.y + Math.PI - cameraRotationY,
+        rotation.z + cameraRotationZ
+      );
+    }
   }
 }
