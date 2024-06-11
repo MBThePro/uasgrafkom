@@ -2,13 +2,14 @@ import * as THREE from "three";
 
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Player, PlayerController, ThirdPersonCamera } from "./adventurer.js";
+import { Ghost, GhostController, GhostCamera } from "./ghost.js";
 
 // Clock
 const clock = new THREE.Clock();
 // Mixers
 let mixer, mixer1, mixer2, mixer3;
 // Player
-let player;
+let player, ghostPlayer, mainPlayer;
 // Sizes
 const sizes = {
   width: window.innerWidth,
@@ -84,7 +85,7 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
 
 // Adventurer
 const adventurerLoader = new GLTFLoader();
-let adventurerModel, adventurerActions, activeAction, previousAction;
+let adventurerModel, adventurerActions, activeAction;
 
 adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   adventurerModel = adventurer.scene;
@@ -121,26 +122,8 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
     ),
   };
 
-  activeAction = adventurerActions["idle"];
-  activeAction.play();
-
-  ["wave", "interact", "death"].forEach((action) => {
-    adventurerActions[action].clampWhenFinished = true;
-    adventurerActions[action].loop = THREE.LoopOnce;
-  });
-
-  mixer2.addEventListener("finished", (event) => {
-    if (
-      event.action === adventurerActions["wave"] ||
-      event.action === adventurerActions["interact"]
-    ) {
-      switchAnimation(adventurerActions["idle"]);
-    }
-  });
   createPlayer();
 });
-
-
 
 function createPlayer() {
   player = new Player(
@@ -153,80 +136,46 @@ function createPlayer() {
     scene,
     10,
     adventurerModel,
+    adventurerActions,
+    renderer
+  );
+  mainPlayer = player; // Set the mainPlayer after creating the player
+}
+
+const ghostGeometry = new THREE.BoxGeometry(1, 2, 1); 
+const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true}); 
+const ghostModel = new THREE.Mesh(ghostGeometry, ghostMaterial);
+
+ghostModel.position.set(0, 0, 0); 
+
+function createGhostPlayer() {
+ ghostPlayer = new Ghost(
+    new GhostCamera(
+      camera,
+      new THREE.Vector3(0, 30, -20.5),
+      new THREE.Vector3(0, 30, -0.5)
+    ),
+    new GhostController,
+    scene,
+    50,
+    ghostModel,
     renderer
   );
 }
 
-export function switchAnimation(newAction) {
-  if (newAction !== activeAction) {
-    previousAction = activeAction;
-    activeAction = newAction;
-    previousAction.fadeOut(0.5);
-    activeAction.reset().fadeIn(0.5).play();
-  }
-}
+createGhostPlayer();
 
-const keys = {
-  w: false,
-  a: false,
-  s: false,
-  d: false,
-  Shift: false
-};
-
-function updateAnimation() {
-  if (!adventurerActions) return
-  
-  if (keys.Shift) {
-    switchAnimation(adventurerActions["run"]);
-  } else if (keys.Shift && (keys.w || keys.a || keys.s || keys.d)) {
-    switchAnimation(adventurerActions["run"]);
-  } else if (keys.w || keys.a || keys.s || keys.d) {
-    switchAnimation(adventurerActions["walk"]);
-  } else {
-    switchAnimation(adventurerActions["idle"]);
-  }
-}
 window.addEventListener("keydown", (event) => {
-  if (event.key === "w") {
-    keys.w = true;
-  } else if (event.key === "a") {
-    keys.a = true;
-  } else if (event.key === "s") {
-    keys.s = true;
-  } else if (event.key === "d") {
-    keys.d = true;
-  } else if (event.key === "Shift") {
-    keys.Shift = true;
-  } 
-  updateAnimation();
-  
-});
-
-window.addEventListener("keyup", (event) => {
-  if (event.key === "w") {
-    keys.w = false;
-  } else if (event.key === "a") {
-    keys.a = false;
-  } else if (event.key === "s") {
-    keys.s = false;
-  } else if (event.key === "d") {
-    keys.d = false;
-  } else if (event.key === "Shift") {
-    keys.Shift = false;
-  }
-  updateAnimation();
-  if (event.key === "i") {
-    switchAnimation(adventurerActions["interact"]);
-  }
-  if (event.key === " ") {
-    switchAnimation(adventurerActions["wave"]);
-  }
-  if (event.key === "x") {
-    switchAnimation(adventurerActions["death"]);
+  if (event.key === "p") {
+    if (player === ghostPlayer) {
+      console.log("player");
+      player = mainPlayer;
+    } else {
+      console.log("ghost_player");
+      player = ghostPlayer;
+    }
   }
 });
-
 
 // Plane
 const planeGeo = new THREE.PlaneGeometry(300, 300, 10, 10);
@@ -258,7 +207,6 @@ window.addEventListener("resize", () => {
   renderer.setSize(sizes.width, sizes.height);
 });
 
-
 // Animate loop
 function animate() {
   renderer.setClearColor(0x88939e);
@@ -269,7 +217,7 @@ function animate() {
   if (mixer) mixer.update(delta);
   if (mixer1) mixer1.update(delta);
   if (mixer2) mixer2.update(delta);
-  if (adventurerModel) {
+  if (player) { // Check if player is defined before updating
     player.update(delta);
   }
 

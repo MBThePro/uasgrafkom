@@ -1,13 +1,22 @@
 import * as THREE from "three";
 
 export class Player {
-  constructor(camera, controller, scene, speed, adventurerModel, renderer) {
+  constructor(
+    camera,
+    controller,
+    scene,
+    speed,
+    adventurerModel,
+    adventurerActions,
+    renderer
+  ) {
     this.camera = camera;
     this.controller = controller;
     this.scene = scene;
     this.speed = speed;
     this.adventurerModel = adventurerModel;
-    
+    this.adventurerActions = adventurerActions;
+
     this.renderer = renderer;
     this.rotationSpeed = Math.PI / 2;
     this.currentRotation = new THREE.Euler(0, 0, 0);
@@ -24,12 +33,45 @@ export class Player {
     this.isFpp = false;
     this.isZoomed = false;
     this.camera.setup(this.adventurerModel.position, this.currentRotation);
-  }
 
+    this.activeAction = this.adventurerActions["idle"];
+    this.activeAction.play();
+  }
+  switchAnimation(newAction) {
+    if (newAction !== this.activeAction) {
+      const previousAction = this.activeAction;
+      this.activeAction = newAction;
+      previousAction.fadeOut(0.5);
+      this.activeAction.reset().fadeIn(0.5).play();
+    }
+  }
   update(dt) {
     var direction = new THREE.Vector3(0, 0, 0);
     let verticalMouseLookSpeed = this.mouseLookSpeed;
 
+    //animation
+    if (this.controller.keys["Shift"]) {
+      this.switchAnimation(this.adventurerActions["run"]);
+    } else if (
+      this.controller.keys["Shift"] &&
+      (this.controller.keys["forward"] ||
+        this.controller.keys["left"] ||
+        this.controller.keys["backward"] ||
+        this.controller.keys["right"])
+    ) {
+      this.switchAnimation(this.adventurerActions["run"]);
+    } else if (
+      this.controller.keys["forward"] ||
+      this.controller.keys["left"] ||
+      this.controller.keys["backward"] ||
+      this.controller.keys["right"]
+    ) {
+      this.switchAnimation(this.adventurerActions["walk"]);
+    } else {
+      this.switchAnimation(this.adventurerActions["idle"]);
+    }
+
+    //
     if (this.controller.keys["forward"]) {
       direction.z += this.speed * dt;
     }
@@ -78,24 +120,24 @@ export class Player {
     }
     if (this.controller.keys["resetZoom"]) {
       this.zoomLevel = 0;
-      if(this.isFpp) this.camera.positionOffset.copy(this.cameraHeadOffset)
+      if (this.isFpp) this.camera.positionOffset.copy(this.cameraHeadOffset);
       else this.camera.positionOffset.copy(this.cameraBaseOffset);
     }
     const headTiltSpeed = 0.1;
-    if(this.isFpp){
-    if (this.controller.keys["lookUp"]) {
-      this.cameraRotationZ = Math.min(
-        this.cameraRotationZ + this.rotationSpeed * dt,
-        15 * (Math.PI / 180)
-      );
-    }
+    if (this.isFpp) {
+      if (this.controller.keys["tiltLeft"]) {
+        this.cameraRotationZ = Math.min(
+          this.cameraRotationZ + this.rotationSpeed * dt,
+          15 * (Math.PI / 180)
+        );
+      }
 
-    if (this.controller.keys["lookDown"]) {
-      this.cameraRotationZ = Math.max(
-        this.cameraRotationZ - this.rotationSpeed * dt,
-        -15 * (Math.PI / 180)
-      );
-    }
+      if (this.controller.keys["tiltRight"]) {
+        this.cameraRotationZ = Math.max(
+          this.cameraRotationZ - this.rotationSpeed * dt,
+          -15 * (Math.PI / 180)
+        );
+      }
     }
     this.currentRotation.z = THREE.MathUtils.lerp(
       this.currentRotation.z,
@@ -160,8 +202,8 @@ export class PlayerController {
       Shift: false,
       fpp: false,
       tpp: false,
-      lookUp: false,
-      lookDown: false,
+      tiltLeft: false,
+      tiltRight: false,
       rotateLeft: false,
       rotateRight: false,
       zoomIn: false,
@@ -189,13 +231,20 @@ export class PlayerController {
   }
 
   onMouseMove(event) {
-    var currentMousePos = new THREE.Vector2(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
-    );
-    this.deltaMousePos.subVectors(currentMousePos, this.mousePos);
-    this.mousePos.copy(currentMousePos);
-  }
+  var currentMousePos = new THREE.Vector2(
+    (event.clientX / window.innerWidth) * 2 - 1,
+    -(event.clientY / window.innerHeight) * 2 + 1
+  );
+  this.deltaMousePos.subVectors(currentMousePos, this.mousePos);
+  this.mousePos.copy(currentMousePos);
+
+  
+  this.deltaMousePos.y *= -100; 
+
+  
+  
+}
+
 
   onKeyDown(event) {
     switch (event.key) {
@@ -234,10 +283,10 @@ export class PlayerController {
         this.keys["Shift"] = true;
         break;
       case "ArrowUp":
-        this.keys["lookUp"] = true;
+        this.keys["tiltLeft"] = true;
         break;
       case "ArrowDown":
-        this.keys["lookDown"] = true;
+        this.keys["tiltRight"] = true;
         break;
       case "ArrowLeft":
         this.keys["rotateLeft"] = true;
@@ -280,10 +329,10 @@ export class PlayerController {
         this.keys["Shift"] = false;
         break;
       case "ArrowUp":
-        this.keys["lookUp"] = false;
+        this.keys["tiltLeft"] = false;
         break;
       case "ArrowDown":
-        this.keys["lookDown"] = false;
+        this.keys["tiltRight"] = false;
         break;
       case "ArrowLeft":
         this.keys["rotateLeft"] = false;
@@ -335,7 +384,7 @@ export class ThirdPersonCamera {
     const zoomFactor = zoomLevel * 0.1;
 
     if (isFpp) {
-      temp.set(target.x, target.y + 30, target.z - zoomFactor); // Set camera to head position for FPP
+      temp.set(target.x, target.y + 30, target.z - zoomFactor); 
     } else {
       temp.add(target);
     }
