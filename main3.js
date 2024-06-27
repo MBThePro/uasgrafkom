@@ -41,7 +41,7 @@ const camera = new THREE.PerspectiveCamera(
 
 let forestModel, childBoundingBox, childBBoxHelper;
 const forestLoader = new GLTFLoader();
-forestLoader.load("resources/Environment2.glb", function (forest) {
+forestLoader.load("resources/Environment.glb", function (forest) {
   forestModel = forest.scene;
   forestModel.scale.set(30, 30, 30);
   forestModel.position.set(0, -15, 0);
