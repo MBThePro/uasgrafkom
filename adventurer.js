@@ -8,7 +8,8 @@ export class Player {
     speed,
     adventurerModel,
     adventurerActions,
-    renderer
+    renderer,
+    enviromentBoundingBox
   ) {
     this.camera = camera;
     this.controller = controller;
@@ -16,8 +17,8 @@ export class Player {
     this.speed = speed;
     this.adventurerModel = adventurerModel;
     this.adventurerActions = adventurerActions;
-
     this.renderer = renderer;
+    this.enviromentBoundingBox = enviromentBoundingBox;
     this.rotationSpeed = Math.PI / 2;
     this.currentRotation = new THREE.Euler(0, 0, 0);
     this.rotationVector = new THREE.Vector3();
@@ -37,6 +38,16 @@ export class Player {
     this.activeAction = this.adventurerActions["idle"];
     this.activeAction.play();
   }
+  checkCollision() {
+    const playerBoundingBox = new THREE.Box3().setFromObject(this.adventurerModel);
+    for (const boundingBox of this.enviromentBoundingBox) {
+      if (playerBoundingBox.intersectsBox(boundingBox)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   switchAnimation(newAction) {
     if (newAction !== this.activeAction) {
       const previousAction = this.activeAction;
@@ -48,8 +59,8 @@ export class Player {
   update(dt) {
     var direction = new THREE.Vector3(0, 0, 0);
     let verticalMouseLookSpeed = this.mouseLookSpeed;
-
     //animation
+    if(this.checkCollision()) this.controller.keys["forward"] = false;
     if (this.controller.keys["Shift"]) {
       this.switchAnimation(this.adventurerActions["run"]);
     } else if (
@@ -190,6 +201,7 @@ export class Player {
       this.zoomLevel
     );
   }
+  
 }
 
 export class PlayerController {
@@ -231,20 +243,15 @@ export class PlayerController {
   }
 
   onMouseMove(event) {
-  var currentMousePos = new THREE.Vector2(
-    (event.clientX / window.innerWidth) * 2 - 1,
-    -(event.clientY / window.innerHeight) * 2 + 1
-  );
-  this.deltaMousePos.subVectors(currentMousePos, this.mousePos);
-  this.mousePos.copy(currentMousePos);
+    var currentMousePos = new THREE.Vector2(
+      (event.clientX / window.innerWidth) * 2 - 1,
+      -(event.clientY / window.innerHeight) * 2 + 1
+    );
+    this.deltaMousePos.subVectors(currentMousePos, this.mousePos);
+    this.mousePos.copy(currentMousePos);
 
-  
-  this.deltaMousePos.y *= -100; 
-
-  
-  
-}
-
+    this.deltaMousePos.y *= -100;
+  }
 
   onKeyDown(event) {
     switch (event.key) {
@@ -384,7 +391,7 @@ export class ThirdPersonCamera {
     const zoomFactor = zoomLevel * 0.1;
 
     if (isFpp) {
-      temp.set(target.x, target.y + 30, target.z - zoomFactor); 
+      temp.set(target.x, target.y + 30, target.z - zoomFactor);
     } else {
       temp.add(target);
     }

@@ -7,9 +7,17 @@ import { Ghost, GhostController, GhostCamera } from "./ghost.js";
 // Clock
 const clock = new THREE.Clock();
 // Mixers
-let mixer, mixer1, mixer2, mixer3;
+let mixer, mixer1, mixer2;
 // Player
 let player, ghostPlayer, mainPlayer;
+// Bounding box
+let stagBoundingBox = null;
+let walkBoundingBox = null;
+let adventurerBoundingBox = null;
+let enviromentBoundingBox = [];
+// Initialize bounding boxes for debugging visualization
+let stagBBoxHelper, walkBBoxHelper, adventurerBBoxHelper;
+
 // Sizes
 const sizes = {
   width: window.innerWidth,
@@ -31,31 +39,103 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-// Environment
+let forestModel, childBoundingBox, childBBoxHelper;
 const forestLoader = new GLTFLoader();
 forestLoader.load("resources/Environment.glb", function (forest) {
-  const forestModel = forest.scene;
-  scene.add(forestModel);
+  forestModel = forest.scene;
   forestModel.scale.set(30, 30, 30);
   forestModel.position.set(0, -15, 0);
+
+  forestModel.traverse((child) => {
+    if (child.isMesh) {
+      
+      child.castShadow = true;
+      child.receiveShadow = true;
+
+      // Create bounding box helper
+      childBoundingBox = new THREE.Box3().setFromObject(child);
+      childBoundingBox.min.multiply(forestModel.scale);
+      childBoundingBox.max.multiply(forestModel.scale);
+      childBoundingBox.min.add(forestModel.position);
+      childBoundingBox.max.add(forestModel.position);
+      childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
+      // enviromentBoundingBox.push(childBoundingBox)
+      scene.add(childBBoxHelper);
+    }
+  });
+
+  scene.add(forestModel);
 });
 
+function createBoundingBoxHelper(
+  scene,
+  minX,
+  maxX,
+  minY,
+  maxY,
+  minZ,
+  maxZ,
+  color,
+  customPosition
+) {
+  const sectionGeometry = new THREE.BoxGeometry(
+    maxX - minX,
+    maxY - minY,
+    maxZ - minZ
+  );
+
+  const sectionMaterial = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.2,
+  });
+
+  const sectionMesh = new THREE.Mesh(sectionGeometry, sectionMaterial);
+
+  // Manually set the position if customPosition is provided
+  if (customPosition) {
+    sectionMesh.position.copy(customPosition);
+  } else {
+    sectionMesh.position.set(
+      (maxX + minX) / 2,
+      (maxY + minY) / 2,
+      (maxZ + minZ) / 2
+    );
+  }
+
+  scene.add(sectionMesh);
+
+  const sectionBoundingBox = new THREE.Box3().setFromObject(sectionMesh);
+  const sectionBBoxHelper = new THREE.Box3Helper(sectionBoundingBox, color);
+  scene.add(sectionBBoxHelper);
+
+  return sectionBBoxHelper;
+}
+
+
+
 // Stag 1
+let stagModel; 
 const stagLoader = new GLTFLoader();
 stagLoader.load("resources/Stag.glb", function (stag) {
-  const model = stag.scene;
-  scene.add(model);
-  model.scale.set(5, 5, 5);
-  model.position.set(30, 3, 40);
-  model.traverse(function (child) {
+  stagModel = stag.scene; // Assign the loaded stag model to stagModel
+  scene.add(stagModel);
+  stagModel.scale.set(5, 5, 5);
+  stagModel.position.set(30, 3, 40);
+  stagModel.traverse(function (child) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
     }
   });
 
+  stagBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(stagBoundingBox);
+  stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for 
+  scene.add(stagBBoxHelper);
+
   const clips = stag.animations;
-  mixer = new THREE.AnimationMixer(model);
+  mixer = new THREE.AnimationMixer(stagModel); // Update the mixer with stagModel
   const eatingClip = THREE.AnimationClip.findByName(clips, "Eating");
   const eatingAction = mixer.clipAction(eatingClip);
   eatingAction.play();
@@ -66,15 +146,24 @@ let walkModel;
 const stagWalkLoader = new GLTFLoader();
 stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel = stagWalk.scene;
+  console.log(walkModel);
+  walkModel.transparent = true;
+  walkModel.opacity = 0.2;
   scene.add(walkModel);
   walkModel.scale.set(5, 5, 5);
   walkModel.position.set(-30, 3, -40);
   walkModel.traverse(function (child) {
     if (child.isMesh) {
+      
       child.castShadow = true;
       child.receiveShadow = true;
     }
   });
+
+  walkBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(walkBoundingBox);
+  walkBBoxHelper = new THREE.Box3Helper(walkBoundingBox, 0x00ff00); // Green for walking stag
+  scene.add(walkBBoxHelper);
 
   const walkClips = stagWalk.animations;
   mixer1 = new THREE.AnimationMixer(walkModel);
@@ -85,7 +174,7 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
 
 // Adventurer
 const adventurerLoader = new GLTFLoader();
-let adventurerModel, adventurerActions, activeAction;
+let adventurerModel, adventurerActions;
 
 adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   adventurerModel = adventurer.scene;
@@ -98,6 +187,10 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
       child.receiveShadow = true;
     }
   });
+
+  adventurerBoundingBox = new THREE.Box3();
+  adventurerBBoxHelper = new THREE.Box3Helper(adventurerBoundingBox, 0x0000ff); // Blue for adventurer
+  scene.add(adventurerBBoxHelper);
 
   const clips = adventurer.animations;
   mixer2 = new THREE.AnimationMixer(adventurerModel);
@@ -137,25 +230,30 @@ function createPlayer() {
     10,
     adventurerModel,
     adventurerActions,
-    renderer
+    renderer,
+    enviromentBoundingBox
   );
-  mainPlayer = player; // Set the mainPlayer after creating the player
+  mainPlayer = player;
 }
 
-const ghostGeometry = new THREE.BoxGeometry(1, 2, 1); 
-const ghostMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true}); 
+const ghostGeometry = new THREE.BoxGeometry(10, 20, 10);
+const ghostMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  transparent: true,
+});
 const ghostModel = new THREE.Mesh(ghostGeometry, ghostMaterial);
 
-ghostModel.position.set(0, 0, 0); 
+
+ghostModel.position.set(0, 0, 0);
 
 function createGhostPlayer() {
- ghostPlayer = new Ghost(
+  ghostPlayer = new Ghost(
     new GhostCamera(
       camera,
       new THREE.Vector3(0, 30, -20.5),
       new THREE.Vector3(0, 30, -0.5)
     ),
-    new GhostController,
+    new GhostController(),
     scene,
     50,
     ghostModel,
@@ -207,6 +305,7 @@ window.addEventListener("resize", () => {
   renderer.setSize(sizes.width, sizes.height);
 });
 
+
 // Animate loop
 function animate() {
   renderer.setClearColor(0x88939e);
@@ -217,7 +316,8 @@ function animate() {
   if (mixer) mixer.update(delta);
   if (mixer1) mixer1.update(delta);
   if (mixer2) mixer2.update(delta);
-  if (player) { // Check if player is defined before updating
+  if (player) {
+    // Check if player is defined before updating
     player.update(delta);
   }
 
@@ -239,6 +339,32 @@ function animate() {
         walkModel.rotation.y -= 0.025;
       }
     }
+
+    if (walkBoundingBox) {
+      walkBoundingBox.setFromObject(walkModel);
+      scene.remove(walkBBoxHelper);
+      walkBBoxHelper = new THREE.Box3Helper(walkBoundingBox, 0x00ff00);
+      scene.add(walkBBoxHelper);
+    }
   }
+
+  if (stagBoundingBox) {
+    stagBoundingBox.setFromObject(stagModel);
+    scene.remove(stagBBoxHelper);
+    stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0x00fff0);
+    scene.add(stagBBoxHelper);
+  }
+  // Update bounding boxes and helpers for the adventurer
+  if (adventurerModel && adventurerBoundingBox) {
+    adventurerBoundingBox.setFromObject(adventurerModel);
+    scene.remove(adventurerBBoxHelper);
+    adventurerBBoxHelper = new THREE.Box3Helper(
+      adventurerBoundingBox,
+      0x0000ff
+    );
+    scene.add(adventurerBBoxHelper);
+  }
+
 }
+
 requestAnimationFrame(animate);
