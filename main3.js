@@ -69,7 +69,7 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       if (child.parent.name.includes("Tree")) childBoundingBox.expandByScalar(-10)
 
       if (!(child.parent.name =="grasses" || child.parent.name.includes("rocks"))) enviromentBoundingBox.push(childBoundingBox)
-      scene.add(childBBoxHelper);
+        scene.add(childBBoxHelper);
     }
   });
 
@@ -121,7 +121,23 @@ function createBoundingBoxHelper(
   return sectionBBoxHelper;
 }
 
+// Campfire
+const campfireLoader = new GLTFLoader();
+campfireLoader.load('resources/Campfire.glb', function(campfire) {
+    const campfireModel = campfire.scene;
+    scene.add(campfireModel);
+    campfireModel.scale.set(5,5,5);
+    campfireModel.position.set(7,5,53);
+    campfireModel.traverse( function ( child ) {
+        if ( child.isMesh ) {
+            child.castShadow = true;
+            child.receiveShadow = true;
 
+        }
+    });
+    var pointLight = new THREE.PointLight(0xffff11, 200);
+    campfireModel.add(pointLight);
+});
 
 // Stag 1
 let stagModel; 
