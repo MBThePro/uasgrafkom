@@ -22,12 +22,12 @@ export class Player {
     this.rotationSpeed = Math.PI / 2;
     this.currentRotation = new THREE.Euler(0, 0, 0);
     this.rotationVector = new THREE.Vector3();
-    this.cameraBaseOffset = new THREE.Vector3(0, 30, -20.5); // For TPP
-    this.cameraHeadOffset = new THREE.Vector3(0, 30, 0); // For FPP
+    this.cameraBaseOffset = new THREE.Vector3(0, 17, -15.5); // For TPP
+    this.cameraHeadOffset = new THREE.Vector3(0, 0, 0); // For FPP
     this.zoomLevel = 0;
     this.zoomIncrement = 5;
     this.camera.positionOffset = this.cameraBaseOffset.clone();
-    this.camera.targetOffset = new THREE.Vector3(0, 30, 0);
+    this.camera.targetOffset = new THREE.Vector3(0, 10, 0);
     this.mouseLookSpeed = 1.5;
     this.cameraRotationY = 0;
     this.cameraRotationZ = 0;
@@ -118,7 +118,7 @@ export class Player {
       this.zoomLevel -= this.zoomIncrement;
       const zoomFactor = this.zoomLevel * 0.1;
       if (!this.isFpp && -20.5 - zoomFactor < -0) {
-        const zoomedOffset = new THREE.Vector3(0, 30, -20.5 - zoomFactor);
+        const zoomedOffset = new THREE.Vector3(0, 17, -15.5 - zoomFactor);
         this.camera.positionOffset.copy(zoomedOffset);
       }
     }
@@ -126,7 +126,7 @@ export class Player {
       this.zoomLevel += this.zoomIncrement;
       if (!this.isFpp) {
         const zoomFactor = this.zoomLevel * 0.1;
-        const zoomedOffset = new THREE.Vector3(0, 30, -20.5 - zoomFactor);
+        const zoomedOffset = new THREE.Vector3(0, 17, -15.5 - zoomFactor);
         this.camera.positionOffset.copy(zoomedOffset);
       }
     }
@@ -392,7 +392,7 @@ export class ThirdPersonCamera {
     const zoomFactor = zoomLevel * 0.1;
 
     if (isFpp) {
-      temp.set(target.x, target.y + 30, target.z - zoomFactor);
+      temp.set(target.x, target.y + 16, target.z - zoomFactor);
     } else {
       temp.add(target);
     }

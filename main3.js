@@ -28,6 +28,7 @@ const sizes = {
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(sizes.width, sizes.height);
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 // Setup scene and camera
@@ -43,8 +44,8 @@ let forestModel, childBoundingBox, childBBoxHelper;
 const forestLoader = new GLTFLoader();
 forestLoader.load("resources/Environment.glb", function (forest) {
   forestModel = forest.scene;
-  forestModel.scale.set(30, 30, 30);
-  forestModel.position.set(0, -15, 0);
+  forestModel.scale.set(15, 15, 15);
+  forestModel.position.set(0, -6, 0);
 
   forestModel.traverse((child) => {
     if (child.isMesh) {
@@ -128,8 +129,8 @@ const stagLoader = new GLTFLoader();
 stagLoader.load("resources/Stag.glb", function (stag) {
   stagModel = stag.scene; // Assign the loaded stag model to stagModel
   scene.add(stagModel);
-  stagModel.scale.set(5, 5, 5);
-  stagModel.position.set(30, 3, 40);
+  stagModel.scale.set(3, 3, 3);
+  stagModel.position.set(15, 3, 20);
   stagModel.traverse(function (child) {
     if (child.isMesh) {
       child.castShadow = true;
@@ -157,7 +158,7 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel.transparent = true;
   walkModel.opacity = 0.2;
   scene.add(walkModel);
-  walkModel.scale.set(5, 5, 5);
+  walkModel.scale.set(3, 3, 3);
   walkModel.position.set(-30, 3, -40);
   walkModel.traverse(function (child) {
     if (child.isMesh) {
@@ -186,8 +187,8 @@ let adventurerModel, adventurerActions;
 adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   adventurerModel = adventurer.scene;
   scene.add(adventurerModel);
-  adventurerModel.scale.set(15, 15, 15);
-  adventurerModel.position.set(5, 3.5, 10);
+  adventurerModel.scale.set(8, 8, 8);
+  adventurerModel.position.set(5, 3.4, 10);
   adventurerModel.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = true;
@@ -229,8 +230,8 @@ function createPlayer() {
   player = new Player(
     new ThirdPersonCamera(
       camera,
-      new THREE.Vector3(0, 30, -20.5),
-      new THREE.Vector3(0, 30, -0.5)
+      new THREE.Vector3(0, 17, -15.5),
+      new THREE.Vector3(0, 0, 0)
     ),
     new PlayerController(),
     scene,
@@ -257,8 +258,8 @@ function createGhostPlayer() {
   ghostPlayer = new Ghost(
     new GhostCamera(
       camera,
-      new THREE.Vector3(0, 30, -20.5),
-      new THREE.Vector3(0, 30, -0.5)
+      new THREE.Vector3(0, 17, -15.5),
+      new THREE.Vector3(0, 17, -0.5)
     ),
     new GhostController(),
     scene,
@@ -283,23 +284,34 @@ window.addEventListener("keydown", (event) => {
 });
 
 // Plane
-const planeGeo = new THREE.PlaneGeometry(300, 300, 10, 10);
+const planeGeo = new THREE.PlaneGeometry(510, 510, 10, 10);
 const planeMat = new THREE.MeshPhongMaterial({ color: 0x638f32 });
 const plane = new THREE.Mesh(planeGeo, planeMat);
 plane.castShadow = true;
 plane.receiveShadow = true;
 plane.rotation.x = -Math.PI / 2;
 scene.add(plane);
+plane.position.set(0, 3.2, 0);
 
 // Light
 const ambientLight = new THREE.AmbientLight(0x88939e, 0.8);
 scene.add(ambientLight);
-const dLight = new THREE.DirectionalLight(0x47596b, 4);
+
+const dLight = new THREE.DirectionalLight(0x47596b, 4); // White light
+dLight.position.set(0, 200, 50);
+dLight.castShadow = true;
+dLight.shadow.mapSize.width = 5000;  // Increase the shadow map size for better quality
+dLight.shadow.mapSize.height = 5000; // Increase the shadow map size for better quality
+dLight.shadow.camera.near = 0.5;
+dLight.shadow.camera.far = 500;
+dLight.shadow.camera.left = -270;  // Increase these values to enlarge the shadow boundary
+dLight.shadow.camera.right = 270;  // Increase these values to enlarge the shadow boundary
+dLight.shadow.camera.top = 270;    // Increase these values to enlarge the shadow boundary
+dLight.shadow.camera.bottom = -270; // Increase these values to enlarge the shadow boundary
 scene.add(dLight);
-dLight.position.set(4, 10, 3);
 
 // Others
-scene.fog = new THREE.Fog(0x88939e, 100, 250);
+scene.fog = new THREE.Fog(0x88939e, 50, 120);
 let stagSpeed = 0.1;
 let rotateStag = false;
 
