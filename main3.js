@@ -48,10 +48,10 @@ forestLoader.load("resources/Environment.glb", function (forest) {
 
   forestModel.traverse((child) => {
     if (child.isMesh) {
-      
       child.castShadow = true;
       child.receiveShadow = true;
-
+      // console.log(child.parent)
+      
       // Create bounding box helper
       childBoundingBox = new THREE.Box3().setFromObject(child);
       childBoundingBox.min.multiply(forestModel.scale);
@@ -59,7 +59,15 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       childBoundingBox.min.add(forestModel.position);
       childBoundingBox.max.add(forestModel.position);
       childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
-      // enviromentBoundingBox.push(childBoundingBox)
+
+      // console.log(childBoundingBox.max.x)
+      if (childBoundingBox.max.x == 3.9582591271027923) {
+        console.log(child.parent.name)
+      }
+
+      if (child.parent.name.includes("Tree")) childBoundingBox.expandByScalar(-10)
+
+      if (!(child.parent.name =="grasses" || child.parent.name.includes("rocks"))) enviromentBoundingBox.push(childBoundingBox)
       scene.add(childBBoxHelper);
     }
   });
@@ -146,7 +154,6 @@ let walkModel;
 const stagWalkLoader = new GLTFLoader();
 stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel = stagWalk.scene;
-  console.log(walkModel);
   walkModel.transparent = true;
   walkModel.opacity = 0.2;
   scene.add(walkModel);
@@ -180,7 +187,7 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   adventurerModel = adventurer.scene;
   scene.add(adventurerModel);
   adventurerModel.scale.set(15, 15, 15);
-  adventurerModel.position.set(5, 3.5, 0);
+  adventurerModel.position.set(5, 3.5, 10);
   adventurerModel.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = true;

@@ -42,6 +42,7 @@ export class Player {
     const playerBoundingBox = new THREE.Box3().setFromObject(this.adventurerModel);
     for (const boundingBox of this.enviromentBoundingBox) {
       if (playerBoundingBox.intersectsBox(boundingBox)) {
+        console.log(boundingBox)
         return true;
       }
     }
