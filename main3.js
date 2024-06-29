@@ -52,7 +52,7 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       child.castShadow = true;
       child.receiveShadow = true;
       // console.log(child.parent)
-      
+
       // Create bounding box helper
       childBoundingBox = new THREE.Box3().setFromObject(child);
       childBoundingBox.min.multiply(forestModel.scale);
@@ -68,8 +68,8 @@ forestLoader.load("resources/Environment.glb", function (forest) {
 
       if (child.parent.name.includes("Tree")) childBoundingBox.expandByScalar(-10)
 
-      if (!(child.parent.name =="grasses" || child.parent.name.includes("rocks"))) enviromentBoundingBox.push(childBoundingBox)
-        scene.add(childBBoxHelper);
+      if (!(child.parent.name == "grasses" || child.parent.name.includes("rocks"))) enviromentBoundingBox.push(childBoundingBox)
+      scene.add(childBBoxHelper);
     }
   });
 
@@ -123,24 +123,59 @@ function createBoundingBoxHelper(
 
 // Campfire
 const campfireLoader = new GLTFLoader();
-campfireLoader.load('resources/Campfire.glb', function(campfire) {
-    const campfireModel = campfire.scene;
-    scene.add(campfireModel);
-    campfireModel.scale.set(5,5,5);
-    campfireModel.position.set(7,5,53);
-    campfireModel.traverse( function ( child ) {
-        if ( child.isMesh ) {
-            child.castShadow = true;
-            child.receiveShadow = true;
+campfireLoader.load('resources/Campfire.glb', function (campfire) {
+  const campfireModel = campfire.scene;
+  scene.add(campfireModel);
+  campfireModel.scale.set(5, 5, 5);
+  campfireModel.position.set(7, 5, 53);
+  campfireModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
 
-        }
-    });
-    var pointLight = new THREE.PointLight(0xffff11, 200);
-    campfireModel.add(pointLight);
+    }
+  });
+  var pointLight = new THREE.PointLight(0xffff11, 200);
+  campfireModel.add(pointLight);
+});
+
+// Lampu1
+const lampu1Loader = new GLTFLoader();
+lampu1Loader.load('resources/Lantern.glb', function (lampu1) {
+  const lampu1Model = lampu1.scene;
+  scene.add(lampu1Model);
+  lampu1Model.scale.set(10, 10, 10);
+  lampu1Model.position.set(0, 15, -120);
+  lampu1Model.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+
+    }
+  });
+  var pointLantern1 = new THREE.PointLight(0xffff11, 100);
+  lampu1Model.add(pointLantern1);
+});
+
+// Lampu2
+const lampu2Loader = new GLTFLoader();
+lampu2Loader.load('resources/Lantern.glb', function (lampu2) {
+  const lampu2Model = lampu2.scene;
+  scene.add(lampu2Model);
+  lampu2Model.scale.set(10, 10, 10);
+  lampu2Model.position.set(-40, 15, -120);
+  lampu2Model.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+  var pointLantern2 = new THREE.PointLight(0xffff11, 100);
+  lampu2Model.add(pointLantern2);
 });
 
 // Stag 1
-let stagModel; 
+let stagModel;
 const stagLoader = new GLTFLoader();
 stagLoader.load("resources/Stag.glb", function (stag) {
   stagModel = stag.scene; // Assign the loaded stag model to stagModel
@@ -178,7 +213,7 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel.position.set(-30, 3, -40);
   walkModel.traverse(function (child) {
     if (child.isMesh) {
-      
+
       child.castShadow = true;
       child.receiveShadow = true;
     }
@@ -241,6 +276,46 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
 
   createPlayer();
 });
+
+// Kaca 1
+const kaca1 = new THREE.BoxGeometry(7.5, 9, 1);
+const kacaMaterial1 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+kacaMaterial1.transmission = 1.0;
+kacaMaterial1.roughness = 0.0;
+const cube1 = new THREE.Mesh(kaca1, kacaMaterial1);
+cube1.position.set(-6, 16, -137);
+cube1.castShadow = true;
+cube1.receiveShadow = true;
+scene.add(cube1);
+
+const kaca2 = new THREE.BoxGeometry(7.5, 9, 1);
+const kacaMaterial2 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+kacaMaterial2.transmission = 1.0;
+kacaMaterial2.roughness = 0.0;
+const cube2 = new THREE.Mesh(kaca2, kacaMaterial2);
+cube2.position.set(-33, 16, -137);
+cube2.castShadow = true;
+cube2.receiveShadow = true;
+scene.add(cube2);
+
+const kaca3 = new THREE.BoxGeometry(7.5, 9, 1);
+const kacaMaterial3 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const cube3 = new THREE.Mesh(kaca3, kacaMaterial3);
+cube3.position.set(-6, 16, -168);
+scene.add(cube3);
+
+const kaca4 = new THREE.BoxGeometry(7.5, 9, 1);
+const kacaMaterial4 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const cube4 = new THREE.Mesh(kaca4, kacaMaterial4);
+cube4.position.set(-33, 16, -168);
+scene.add(cube4);
+
+const kaca5 = new THREE.BoxGeometry(7.5, 9, 1);
+const kacaMaterial5 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const cube5 = new THREE.Mesh(kaca5, kacaMaterial5);
+cube5.position.set(2.8, 16, -152.5);
+cube5.rotation.set(0, Math.PI / 2, 0);
+scene.add(cube5);
 
 function createPlayer() {
   player = new Player(
@@ -357,7 +432,7 @@ function animate() {
     player.camera.updateHeadBob_(delta);
   }
 
-  
+
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
