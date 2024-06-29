@@ -59,7 +59,7 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       childBoundingBox.max.multiply(forestModel.scale);
       childBoundingBox.min.add(forestModel.position);
       childBoundingBox.max.add(forestModel.position);
-      childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
+      // childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
 
       // console.log(childBoundingBox.max.x)
       if (childBoundingBox.max.x == 3.9582591271027923) {
@@ -191,8 +191,8 @@ stagLoader.load("resources/Stag.glb", function (stag) {
 
   stagBoundingBox = new THREE.Box3();
   enviromentBoundingBox.push(stagBoundingBox);
-  stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for 
-  scene.add(stagBBoxHelper);
+  // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for 
+  // scene.add(stagBBoxHelper);
 
   const clips = stag.animations;
   mixer = new THREE.AnimationMixer(stagModel); // Update the mixer with stagModel
@@ -221,8 +221,8 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
 
   walkBoundingBox = new THREE.Box3();
   enviromentBoundingBox.push(walkBoundingBox);
-  walkBBoxHelper = new THREE.Box3Helper(walkBoundingBox, 0x00ff00); // Green for walking stag
-  scene.add(walkBBoxHelper);
+  // walkBBoxHelper = new THREE.Box3Helper(walkBoundingBox, 0x00ff00); // Green for walking stag
+  // scene.add(walkBBoxHelper);
 
   const walkClips = stagWalk.animations;
   mixer1 = new THREE.AnimationMixer(walkModel);
@@ -248,8 +248,8 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   });
 
   adventurerBoundingBox = new THREE.Box3();
-  adventurerBBoxHelper = new THREE.Box3Helper(adventurerBoundingBox, 0x0000ff); // Blue for adventurer
-  scene.add(adventurerBBoxHelper);
+  // adventurerBBoxHelper = new THREE.Box3Helper(adventurerBoundingBox, 0x0000ff); // Blue for adventurer
+  // scene.add(adventurerBBoxHelper);
 
   const clips = adventurer.animations;
   mixer2 = new THREE.AnimationMixer(adventurerModel);
@@ -384,6 +384,16 @@ plane.rotation.x = -Math.PI / 2;
 scene.add(plane);
 plane.position.set(0, 3.2, 0);
 
+// Daynight color
+const dayColor = new THREE.Color(0x88939e);
+const nightColor = new THREE.Color(0x000000);
+const dayAmbientLightColor = new THREE.Color(0x88939e);
+const nightAmbientLightColor = new THREE.Color(0x171515);
+const dayDirectionalLightColor = new THREE.Color(0x47596b);
+const nightDirectionalLightColor = new THREE.Color(0x1b1b1c);
+const cycleDuration = 60; // Duration of a full day-night cycle in seconds
+let cycleTime = 0;
+
 // Light
 const ambientLight = new THREE.AmbientLight(0x88939e, 0.8);
 scene.add(ambientLight);
@@ -391,14 +401,14 @@ scene.add(ambientLight);
 const dLight = new THREE.DirectionalLight(0x47596b, 4); // White light
 dLight.position.set(0, 200, 50);
 dLight.castShadow = true;
-dLight.shadow.mapSize.width = 5000;  // Increase the shadow map size for better quality
-dLight.shadow.mapSize.height = 5000; // Increase the shadow map size for better quality
+dLight.shadow.mapSize.width = 5000;
+dLight.shadow.mapSize.height = 5000;
 dLight.shadow.camera.near = 0.5;
 dLight.shadow.camera.far = 500;
-dLight.shadow.camera.left = -270;  // Increase these values to enlarge the shadow boundary
-dLight.shadow.camera.right = 270;  // Increase these values to enlarge the shadow boundary
-dLight.shadow.camera.top = 270;    // Increase these values to enlarge the shadow boundary
-dLight.shadow.camera.bottom = -270; // Increase these values to enlarge the shadow boundary
+dLight.shadow.camera.left = -270;
+dLight.shadow.camera.right = 270;
+dLight.shadow.camera.top = 270;
+dLight.shadow.camera.bottom = -270;
 scene.add(dLight);
 
 // Others
@@ -418,7 +428,6 @@ window.addEventListener("resize", () => {
 
 // Animate loop
 function animate() {
-  renderer.setClearColor(0x88939e);
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 
@@ -432,7 +441,19 @@ function animate() {
     player.camera.updateHeadBob_(delta);
   }
 
+  // Update day-night cycle
+  cycleTime += delta;
+  const cycleProgress = (cycleTime % cycleDuration) / cycleDuration;
+  const colorFactor = 0.5 * (1 + Math.sin(cycleProgress * 2 * Math.PI)); // Ranges from 0 to 1
 
+  const currentFogColor = dayColor.clone().lerp(nightColor, colorFactor);
+  const currentAmbientLightColor = dayAmbientLightColor.clone().lerp(nightAmbientLightColor, colorFactor);
+  const currentDirectionalLightColor = dayDirectionalLightColor.clone().lerp(nightDirectionalLightColor, colorFactor);
+
+  scene.fog.color = currentFogColor;
+  renderer.setClearColor(currentFogColor);
+  ambientLight.color = currentAmbientLightColor;
+  dLight.color = currentDirectionalLightColor;
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
@@ -456,26 +477,26 @@ function animate() {
     if (walkBoundingBox) {
       walkBoundingBox.setFromObject(walkModel);
       scene.remove(walkBBoxHelper);
-      walkBBoxHelper = new THREE.Box3Helper(walkBoundingBox, 0x00ff00);
-      scene.add(walkBBoxHelper);
+      // walkBBoxHelper = new THREE.Box3Helper(walkBoundingBox, 0x00ff00);
+      // scene.add(walkBBoxHelper);
     }
   }
 
   if (stagBoundingBox) {
     stagBoundingBox.setFromObject(stagModel);
     scene.remove(stagBBoxHelper);
-    stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0x00fff0);
-    scene.add(stagBBoxHelper);
+    // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0x00fff0);
+    // scene.add(stagBBoxHelper);
   }
   // Update bounding boxes and helpers for the adventurer
   if (adventurerModel && adventurerBoundingBox) {
     adventurerBoundingBox.setFromObject(adventurerModel);
     scene.remove(adventurerBBoxHelper);
-    adventurerBBoxHelper = new THREE.Box3Helper(
-      adventurerBoundingBox,
-      0x0000ff
-    );
-    scene.add(adventurerBBoxHelper);
+    // adventurerBBoxHelper = new THREE.Box3Helper(
+    //   adventurerBoundingBox,
+    //   0x0000ff
+    // );
+    // scene.add(adventurerBBoxHelper);
   }
 
 }
