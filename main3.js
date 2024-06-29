@@ -317,6 +317,44 @@ cube5.position.set(2.8, 16, -152.5);
 cube5.rotation.set(0, Math.PI / 2, 0);
 scene.add(cube5);
 
+
+const bottle = new THREE.CylinderGeometry( 0.5, 0.5, 10, 8 ); 
+const bottleMaterial = new THREE.MeshPhysicalMaterial( {
+  color:  	0x00FFFF,
+  transmission: 1.0,
+  roughness: 0,
+  ior:1.7,
+  thickness: 0.2,
+  specularIntensity:1.0,
+  clearcoat: 1
+} ); 
+const waterBottle = new THREE.Mesh( bottle, bottleMaterial );
+waterBottle.position.set(0, 0, 50) 
+scene.add( waterBottle );
+
+
+const bottleTop = new THREE.CylinderGeometry(0.25,0.5, 1, 8); 
+const bottleTopMaterial = new THREE.MeshPhysicalMaterial( {
+  color:  	0x00FFFF,
+  transmission: 1.0,
+  roughness: 0,
+  ior:1.7,
+  thickness: 0.2,
+  specularIntensity:1.0,
+  clearcoat: 1
+} ); 
+const waterBottleTop = new THREE.Mesh( bottleTop, bottleTopMaterial );
+waterBottleTop.position.set(0, 5.5, 50) 
+scene.add(waterBottleTop);
+
+const bottleCap = new THREE.CylinderGeometry(0.25,0.25, 0.25, 8); 
+const bottleCapMaterial = new THREE.MeshBasicMaterial( {
+  color: new THREE.Color(1,1,1)} ); 
+const waterBottleCap = new THREE.Mesh( bottleCap, bottleCapMaterial );
+waterBottleCap.position.set(0, 6.25, 50) 
+scene.add(waterBottleCap);
+
+
 function createPlayer() {
   player = new Player(
     new ThirdPersonCamera(
