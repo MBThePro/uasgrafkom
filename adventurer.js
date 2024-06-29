@@ -1,4 +1,6 @@
-import * as THREE from "three";
+import * as THREE from "three"
+var headBobActive_ = false;
+var headBobSpeed = 0.5;
 
 export class Player {
   constructor(
@@ -34,6 +36,7 @@ export class Player {
     this.isFpp = false;
     this.isZoomed = false;
     this.camera.setup(this.adventurerModel.position, this.currentRotation);
+
 
     this.activeAction = this.adventurerActions["idle"];
     this.activeAction.play();
@@ -86,6 +89,7 @@ export class Player {
     //
     if (this.controller.keys["forward"]) {
       direction.z += this.speed * dt;
+      headBobActive_ = true;
     }
     if (this.controller.keys["backward"]) {
       direction.z -= this.speed * dt;
@@ -98,6 +102,9 @@ export class Player {
     }
     if (this.controller.keys["Shift"]) {
       direction.multiplyScalar(2);
+      headBobSpeed = 0.65;
+    } else {
+      headBobSpeed = 0.5;
     }
     if (this.controller.keys["fpp"]) {
       this.isFpp = true;
@@ -364,6 +371,8 @@ export class ThirdPersonCamera {
     this.positionOffset = positionOffset;
     this.targetOffset = targetOffset;
     this.cameraRotationZ = 0;
+    this.headBobTimer_ = 0;
+    this.isFpp = false;
   }
 
   setup(
@@ -403,12 +412,37 @@ export class ThirdPersonCamera {
       var lookAtTarget = new THREE.Vector3();
       lookAtTarget.addVectors(target, this.targetOffset);
       this.camera.lookAt(lookAtTarget);
+      this.isFpp = false;
     } else {
+      this.isFpp = true;
       this.camera.rotation.set(
         rotation.x,
         rotation.y + Math.PI - cameraRotationY,
         rotation.z + cameraRotationZ
       );
+    }
+  }
+
+  updateHeadBob_(timeElapsedS) {
+    if (!this.isFpp) return
+
+    var x, y, z;
+    z = this.camera.position.z;
+    y = this.camera.position.y;
+    x = this.camera.position.x;
+
+    this.camera.position.set(x, y +Math.sin(this.headBobTimer_ * 10) * headBobSpeed, z)
+
+
+    if (headBobActive_) {
+      const wavelength = Math.PI;
+      const nextStep = 1 + Math.floor(((this.headBobTimer_ + 0.000001) * 10) / wavelength);
+      const nextStepTime = nextStep * wavelength / 10;
+      this.headBobTimer_ = Math.min(this.headBobTimer_ + timeElapsedS, nextStepTime);
+
+      if (this.headBobTimer_ == nextStepTime) {
+        headBobActive_ = false;
+      }
     }
   }
 }

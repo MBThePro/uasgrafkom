@@ -354,7 +354,10 @@ function animate() {
   if (player) {
     // Check if player is defined before updating
     player.update(delta);
+    player.camera.updateHeadBob_(delta);
   }
+
+  
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
