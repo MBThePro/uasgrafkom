@@ -33,14 +33,15 @@ export class Player {
     this.mouseLookSpeed = 1.5;
     this.cameraRotationY = 0;
     this.cameraRotationZ = 0;
+    this.xLevel = 0;
     this.isFpp = false;
     this.isZoomed = false;
     this.camera.setup(this.adventurerModel.position, this.currentRotation);
 
-
     this.activeAction = this.adventurerActions["idle"];
     this.activeAction.play();
   }
+
   checkCollision() {
     const playerBoundingBox = new THREE.Box3().setFromObject(this.adventurerModel);
     for (const boundingBox of this.enviromentBoundingBox) {
@@ -60,11 +61,16 @@ export class Player {
       this.activeAction.reset().fadeIn(0.5).play();
     }
   }
+
   update(dt) {
     var direction = new THREE.Vector3(0, 0, 0);
     let verticalMouseLookSpeed = this.mouseLookSpeed;
-    //animation
-    if(this.checkCollision()) this.controller.keys["forward"] = false;
+    // Define the limits for xLevel
+    const xLevelMin = -Math.PI / 2; // Limit for looking straight up
+    const xLevelMax = Math.PI / 2;  // Limit for looking straight down
+
+    // Animation
+    if (this.checkCollision()) this.controller.keys["forward"] = false;
     if (this.controller.keys["Shift"]) {
       this.switchAnimation(this.adventurerActions["run"]);
     } else if (
@@ -86,7 +92,6 @@ export class Player {
       this.switchAnimation(this.adventurerActions["idle"]);
     }
 
-    //
     if (this.controller.keys["forward"]) {
       direction.z += this.speed * dt;
       headBobActive_ = true;
@@ -170,6 +175,12 @@ export class Player {
       dtMouse.y = dtMouse.y / Math.PI;
 
       this.rotationVector.y += dtMouse.x * 100000 * dt;
+
+      // Adjust the xLevel with clamping
+      this.xLevel += dtMouse.y / 10;
+      this.xLevel = THREE.MathUtils.clamp(this.xLevel, xLevelMin, xLevelMax);
+
+      console.log(this.xLevel)
       this.camera.targetOffset.y -= dtMouse.y * verticalMouseLookSpeed;
       this.camera.targetOffset.y = THREE.MathUtils.clamp(
         this.camera.targetOffset.y,
@@ -206,7 +217,8 @@ export class Player {
       this.cameraRotationY,
       this.isFpp,
       this.cameraRotationZ,
-      this.zoomLevel
+      this.zoomLevel,
+      this.xLevel
     );
   }
   
@@ -381,7 +393,8 @@ export class ThirdPersonCamera {
     cameraRotationY = 0,
     isFpp = false,
     cameraRotationZ = 0,
-    zoomLevel
+    zoomLevel,
+    xLevel
   ) {
     var temp = new THREE.Vector3();
     temp.copy(this.positionOffset);
@@ -415,11 +428,10 @@ export class ThirdPersonCamera {
       this.isFpp = false;
     } else {
       this.isFpp = true;
-      this.camera.rotation.set(
-        rotation.x,
-        rotation.y + Math.PI - cameraRotationY,
-        rotation.z + cameraRotationZ
-      );
+      // Set camera rotation using xLevel for the X-axis
+      this.camera.rotation.x = xLevel;
+      this.camera.rotation.y = rotation.y + Math.PI - cameraRotationY;
+      this.camera.rotation.z = rotation.z + cameraRotationZ;
     }
   }
 
@@ -431,8 +443,7 @@ export class ThirdPersonCamera {
     y = this.camera.position.y;
     x = this.camera.position.x;
 
-    this.camera.position.set(x, y +Math.sin(this.headBobTimer_ * 10) * headBobSpeed, z)
-
+    this.camera.position.set(x, y + Math.sin(this.headBobTimer_ * 10) * headBobSpeed, z);
 
     if (headBobActive_) {
       const wavelength = Math.PI;
