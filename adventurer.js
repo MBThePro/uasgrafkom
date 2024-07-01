@@ -180,7 +180,6 @@ export class Player {
       this.xLevel += dtMouse.y / 10;
       this.xLevel = THREE.MathUtils.clamp(this.xLevel, xLevelMin, xLevelMax);
 
-      console.log(this.xLevel)
       this.camera.targetOffset.y -= dtMouse.y * verticalMouseLookSpeed;
       this.camera.targetOffset.y = THREE.MathUtils.clamp(
         this.camera.targetOffset.y,
@@ -189,6 +188,7 @@ export class Player {
       );
     }
 
+    console.log(this.xLevel)
     this.currentRotation.y += this.rotationVector.y * dt;
     this.currentRotation.z += this.rotationVector.z * dt;
 
@@ -428,10 +428,11 @@ export class ThirdPersonCamera {
       this.isFpp = false;
     } else {
       this.isFpp = true;
-      // Set camera rotation using xLevel for the X-axis
-      this.camera.rotation.x = xLevel;
-      this.camera.rotation.y = rotation.y + Math.PI - cameraRotationY;
-      this.camera.rotation.z = rotation.z + cameraRotationZ;
+      // Apply pitch (xLevel) and yaw (rotation.y) separately
+      this.camera.rotation.order = 'YXZ'; // Ensure correct order of rotations
+      this.camera.rotation.y = rotation.y + Math.PI - cameraRotationY; // Yaw
+      this.camera.rotation.x = xLevel; // Pitch
+      this.camera.rotation.z = cameraRotationZ; // Roll (if needed)
     }
   }
 
