@@ -1,7 +1,15 @@
-import * as THREE from "three"
+import * as THREE from "three";
 var headBobActive_ = false;
 var headBobSpeed = 0.5;
 
+function convertOffsetY(value) {
+  if (value > 10) {
+    return -((value - 10) % 10) - 1;
+  }
+  if (value <= 10) {
+    return 10 - value;
+  }
+}
 export class Player {
   constructor(
     camera,
@@ -36,6 +44,7 @@ export class Player {
     this.xLevel = 0;
     this.isFpp = false;
     this.isZoomed = false;
+    this.isZooming = false;
     this.camera.setup(this.adventurerModel.position, this.currentRotation);
 
     this.activeAction = this.adventurerActions["idle"];
@@ -43,10 +52,12 @@ export class Player {
   }
 
   checkCollision() {
-    const playerBoundingBox = new THREE.Box3().setFromObject(this.adventurerModel);
+    const playerBoundingBox = new THREE.Box3().setFromObject(
+      this.adventurerModel
+    );
     for (const boundingBox of this.enviromentBoundingBox) {
       if (playerBoundingBox.intersectsBox(boundingBox)) {
-        console.log(boundingBox)
+        console.log(boundingBox);
         return true;
       }
     }
@@ -67,7 +78,7 @@ export class Player {
     let verticalMouseLookSpeed = this.mouseLookSpeed;
     // Define the limits for xLevel
     const xLevelMin = -Math.PI / 2; // Limit for looking straight up
-    const xLevelMax = Math.PI / 2;  // Limit for looking straight down
+    const xLevelMax = Math.PI / 2; // Limit for looking straight down
 
     // Animation
     if (this.checkCollision()) this.controller.keys["forward"] = false;
@@ -126,27 +137,29 @@ export class Player {
     if (this.controller.keys["rotateRight"]) {
       this.cameraRotationY -= this.rotationSpeed * dt;
     }
-    if (this.controller.keys["zoomIn"]) {
-      this.zoomLevel -= this.zoomIncrement;
+
+    if (this.controller.keys["zoomIn"] || this.controller.keys["zoomOut"]) {
+      this.isZooming = true; // Set zooming state
+      this.zoomLevel += this.controller.keys["zoomIn"]
+        ? -this.zoomIncrement
+        : this.zoomIncrement;
       const zoomFactor = this.zoomLevel * 0.1;
-      if (!this.isFpp && -20.5 - zoomFactor < -0) {
-        const zoomedOffset = new THREE.Vector3(0, 17, -15.5 - zoomFactor);
-        this.camera.positionOffset.copy(zoomedOffset);
-      }
-    }
-    if (this.controller.keys["zoomOut"]) {
-      this.zoomLevel += this.zoomIncrement;
       if (!this.isFpp) {
-        const zoomFactor = this.zoomLevel * 0.1;
-        const zoomedOffset = new THREE.Vector3(0, 17, -15.5 - zoomFactor);
+        const zoomedOffset = new THREE.Vector3(
+          0,
+          17 + zoomFactor * this.xLevel ,
+          -15.5 - zoomFactor
+        );
         this.camera.positionOffset.copy(zoomedOffset);
       }
     }
     if (this.controller.keys["resetZoom"]) {
       this.zoomLevel = 0;
+      this.isZooming = false; // Reset zooming state
       if (this.isFpp) this.camera.positionOffset.copy(this.cameraHeadOffset);
       else this.camera.positionOffset.copy(this.cameraBaseOffset);
     }
+
     const headTiltSpeed = 0.1;
     if (this.isFpp) {
       if (this.controller.keys["tiltLeft"]) {
@@ -188,7 +201,7 @@ export class Player {
       );
     }
 
-    console.log(this.xLevel)
+    console.log(this.xLevel);
     this.currentRotation.y += this.rotationVector.y * dt;
     this.currentRotation.z += this.rotationVector.z * dt;
 
@@ -218,10 +231,10 @@ export class Player {
       this.isFpp,
       this.cameraRotationZ,
       this.zoomLevel,
-      this.xLevel
+      this.xLevel,
+      this.isZooming
     );
   }
-  
 }
 
 export class PlayerController {
@@ -394,7 +407,8 @@ export class ThirdPersonCamera {
     isFpp = false,
     cameraRotationZ = 0,
     zoomLevel,
-    xLevel
+    xLevel,
+    isZooming = false
   ) {
     var temp = new THREE.Vector3();
     temp.copy(this.positionOffset);
@@ -414,43 +428,64 @@ export class ThirdPersonCamera {
     const zoomFactor = zoomLevel * 0.1;
 
     if (isFpp) {
-      temp.set(target.x, target.y + 16, target.z - zoomFactor);
+      temp.set(
+        target.x,
+        target.y + 16 + zoomFactor * xLevel,
+        target.z - zoomFactor
+      );
+      temp.applyAxisAngle(
+        new THREE.Vector3(0, 0, 1),
+        rotation.z + cameraRotationZ
+      );
+      temp.applyAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        rotation.y + cameraRotationY
+      );
     } else {
       temp.add(target);
     }
 
     this.camera.position.copy(temp);
-
-    if (!isFpp) {
-      var lookAtTarget = new THREE.Vector3();
-      lookAtTarget.addVectors(target, this.targetOffset);
-      this.camera.lookAt(lookAtTarget);
-      this.isFpp = false;
-    } else {
-      this.isFpp = true;
-      // Apply pitch (xLevel) and yaw (rotation.y) separately
-      this.camera.rotation.order = 'YXZ'; // Ensure correct order of rotations
-      this.camera.rotation.y = rotation.y + Math.PI - cameraRotationY; // Yaw
-      this.camera.rotation.x = xLevel; // Pitch
-      this.camera.rotation.z = cameraRotationZ; // Roll (if needed)
+    if (!isZooming) {
+      if (!isFpp) {
+        var lookAtTarget = new THREE.Vector3();
+        lookAtTarget.addVectors(target, this.targetOffset);
+        this.camera.lookAt(lookAtTarget);
+        this.isFpp = false;
+      } else {
+        this.isFpp = true;
+        // Apply pitch (xLevel) and yaw (rotation.y) separately
+        this.camera.rotation.order = "YXZ"; // Ensure correct order of rotations
+        this.camera.rotation.y = rotation.y + Math.PI - cameraRotationY; // Yaw
+        this.camera.rotation.x = -xLevel; // Pitch
+        this.camera.rotation.z = cameraRotationZ; // Roll (if needed)
+      }
     }
   }
 
   updateHeadBob_(timeElapsedS) {
-    if (!this.isFpp) return
+    if (!this.isFpp) return;
 
     var x, y, z;
     z = this.camera.position.z;
     y = this.camera.position.y;
     x = this.camera.position.x;
 
-    this.camera.position.set(x, y + Math.sin(this.headBobTimer_ * 10) * headBobSpeed, z);
+    this.camera.position.set(
+      x,
+      y + Math.sin(this.headBobTimer_ * 10) * headBobSpeed,
+      z
+    );
 
     if (headBobActive_) {
       const wavelength = Math.PI;
-      const nextStep = 1 + Math.floor(((this.headBobTimer_ + 0.000001) * 10) / wavelength);
-      const nextStepTime = nextStep * wavelength / 10;
-      this.headBobTimer_ = Math.min(this.headBobTimer_ + timeElapsedS, nextStepTime);
+      const nextStep =
+        1 + Math.floor(((this.headBobTimer_ + 0.000001) * 10) / wavelength);
+      const nextStepTime = (nextStep * wavelength) / 10;
+      this.headBobTimer_ = Math.min(
+        this.headBobTimer_ + timeElapsedS,
+        nextStepTime
+      );
 
       if (this.headBobTimer_ == nextStepTime) {
         headBobActive_ = false;

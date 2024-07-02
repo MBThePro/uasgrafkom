@@ -69,7 +69,7 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       if (child.parent.name.includes("Tree")) childBoundingBox.expandByScalar(-10)
 
       if (!(child.parent.name == "grasses" || child.parent.name.includes("rocks"))) enviromentBoundingBox.push(childBoundingBox)
-      scene.add(childBBoxHelper);
+      // scene.add(childBBoxHelper);
     }
   });
 
@@ -479,19 +479,20 @@ function animate() {
     player.camera.updateHeadBob_(delta);
   }
 
-  // Update day-night cycle
-  cycleTime += delta;
-  const cycleProgress = (cycleTime % cycleDuration) / cycleDuration;
-  const colorFactor = 0.5 * (1 + Math.sin(cycleProgress * 2 * Math.PI)); // Ranges from 0 to 1
+  // // Update day-night cycle
+  // cycleTime += delta;
+  // const cycleProgress = (cycleTime % cycleDuration) / cycleDuration;
+  // const colorFactor = 0.5 * (1 + Math.sin(cycleProgress * 2 * Math.PI)); // Ranges from 0 to 1
 
-  const currentFogColor = dayColor.clone().lerp(nightColor, colorFactor);
-  const currentAmbientLightColor = dayAmbientLightColor.clone().lerp(nightAmbientLightColor, colorFactor);
-  const currentDirectionalLightColor = dayDirectionalLightColor.clone().lerp(nightDirectionalLightColor, colorFactor);
+  // const currentFogColor = dayColor.clone().lerp(nightColor, colorFactor);
+  // const currentAmbientLightColor = dayAmbientLightColor.clone().lerp(nightAmbientLightColor, colorFactor);
+  // const currentDirectionalLightColor = dayDirectionalLightColor.clone().lerp(nightDirectionalLightColor, colorFactor);
 
-  scene.fog.color = currentFogColor;
-  renderer.setClearColor(currentFogColor);
-  ambientLight.color = currentAmbientLightColor;
-  dLight.color = currentDirectionalLightColor;
+  // scene.fog.color = currentFogColor;
+  // renderer.setClearColor(currentFogColor);
+  // ambientLight.color = currentAmbientLightColor;
+  // dLight.color = currentDirectionalLightColor;
+
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
@@ -536,7 +537,6 @@ function animate() {
     // );
     // scene.add(adventurerBBoxHelper);
   }
-
 }
 
 requestAnimationFrame(animate);
