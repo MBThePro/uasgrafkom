@@ -7,12 +7,13 @@ import { Ghost, GhostController, GhostCamera } from "./ghost.js";
 // Clock
 const clock = new THREE.Clock();
 // Mixers
-let mixer, mixer1, mixer2;
+let mixer, mixer1, mixer2, mixer3, mixer4;
 // Player
 let player, ghostPlayer, mainPlayer;
 // Bounding box
 let stagBoundingBox = null;
 let walkBoundingBox = null;
+let foxBoundingBox = null;
 let adventurerBoundingBox = null;
 let enviromentBoundingBox = [];
 // Initialize bounding boxes for debugging visualization
@@ -59,71 +60,40 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       childBoundingBox.max.multiply(forestModel.scale);
       childBoundingBox.min.add(forestModel.position);
       childBoundingBox.max.add(forestModel.position);
-      // childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
+      childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
 
       // console.log(childBoundingBox.max.x)
-      if (childBoundingBox.max.x == 3.9582591271027923) {
+      // if (childBoundingBox.max.x == 3.9582591271027923) {
         console.log(child.parent.name)
-      }
+      // }
+      // console.log(child)
 
-      if (child.parent.name.includes("Tree")) childBoundingBox.expandByScalar(-10)
+      // scene.add(childBBoxHelper)
 
-      if (!(child.parent.name == "grasses" || child.parent.name.includes("rocks"))) enviromentBoundingBox.push(childBoundingBox)
-      // scene.add(childBBoxHelper);
+      if (child.parent.name.includes("Tree"))
+        childBoundingBox.expandByScalar(-10);
+      if (child.parent.name.includes("WoodLog"))
+        childBoundingBox.expandByScalar(-1.9);
+      if (child.parent.name.includes("Tent"))
+        childBoundingBox.expandByScalar(-9);
+        if (child.name.includes("Resource_Rock_1"))
+        childBoundingBox.expandByScalar(-6);
+      // if (child.parent.name.includes("Guitar")) child.position.y -= 0.1
+
+      if (
+        !(child.parent.name == "grasses" || child.parent.name.includes("rocks")|| child.parent.name.includes("Guitar1"))
+      )
+        enviromentBoundingBox.push(childBoundingBox);
+      scene.add(childBBoxHelper);
     }
   });
 
   scene.add(forestModel);
 });
 
-function createBoundingBoxHelper(
-  scene,
-  minX,
-  maxX,
-  minY,
-  maxY,
-  minZ,
-  maxZ,
-  color,
-  customPosition
-) {
-  const sectionGeometry = new THREE.BoxGeometry(
-    maxX - minX,
-    maxY - minY,
-    maxZ - minZ
-  );
-
-  const sectionMaterial = new THREE.MeshBasicMaterial({
-    color: color,
-    transparent: true,
-    opacity: 0.2,
-  });
-
-  const sectionMesh = new THREE.Mesh(sectionGeometry, sectionMaterial);
-
-  // Manually set the position if customPosition is provided
-  if (customPosition) {
-    sectionMesh.position.copy(customPosition);
-  } else {
-    sectionMesh.position.set(
-      (maxX + minX) / 2,
-      (maxY + minY) / 2,
-      (maxZ + minZ) / 2
-    );
-  }
-
-  scene.add(sectionMesh);
-
-  const sectionBoundingBox = new THREE.Box3().setFromObject(sectionMesh);
-  const sectionBBoxHelper = new THREE.Box3Helper(sectionBoundingBox, color);
-  scene.add(sectionBBoxHelper);
-
-  return sectionBBoxHelper;
-}
-
 // Campfire
 const campfireLoader = new GLTFLoader();
-campfireLoader.load('resources/Campfire.glb', function (campfire) {
+campfireLoader.load("resources/Campfire.glb", function (campfire) {
   const campfireModel = campfire.scene;
   scene.add(campfireModel);
   campfireModel.scale.set(5, 5, 5);
@@ -132,7 +102,6 @@ campfireLoader.load('resources/Campfire.glb', function (campfire) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
-
     }
   });
   var pointLight = new THREE.PointLight(0xffff11, 200);
@@ -141,7 +110,7 @@ campfireLoader.load('resources/Campfire.glb', function (campfire) {
 
 // Lampu1
 const lampu1Loader = new GLTFLoader();
-lampu1Loader.load('resources/Lantern.glb', function (lampu1) {
+lampu1Loader.load("resources/Lantern.glb", function (lampu1) {
   const lampu1Model = lampu1.scene;
   scene.add(lampu1Model);
   lampu1Model.scale.set(10, 10, 10);
@@ -150,7 +119,6 @@ lampu1Loader.load('resources/Lantern.glb', function (lampu1) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
-
     }
   });
   var pointLantern1 = new THREE.PointLight(0xffff11, 100);
@@ -159,7 +127,7 @@ lampu1Loader.load('resources/Lantern.glb', function (lampu1) {
 
 // Lampu2
 const lampu2Loader = new GLTFLoader();
-lampu2Loader.load('resources/Lantern.glb', function (lampu2) {
+lampu2Loader.load("resources/Lantern.glb", function (lampu2) {
   const lampu2Model = lampu2.scene;
   scene.add(lampu2Model);
   lampu2Model.scale.set(10, 10, 10);
@@ -191,7 +159,7 @@ stagLoader.load("resources/Stag.glb", function (stag) {
 
   stagBoundingBox = new THREE.Box3();
   enviromentBoundingBox.push(stagBoundingBox);
-  // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for 
+  // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
   // scene.add(stagBBoxHelper);
 
   const clips = stag.animations;
@@ -213,7 +181,6 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel.position.set(-30, 3, -40);
   walkModel.traverse(function (child) {
     if (child.isMesh) {
-
       child.castShadow = true;
       child.receiveShadow = true;
     }
@@ -230,6 +197,77 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   const walkAction = mixer1.clipAction(walkClip);
   walkAction.play();
 });
+
+//Fox
+let foxModel;
+const foxLoader = new GLTFLoader();
+foxLoader.load("resources/Fox.glb", function (fox) {
+  foxModel = fox.scene; // Assign the loaded fox model to foxModel
+  scene.add(foxModel);
+  foxModel.scale.set(3, 3, 3);
+  foxModel.position.set(15, 3, 180);
+  foxModel.rotation.y = THREE.MathUtils.degToRad(90)
+  foxModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  foxBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(foxBoundingBox);
+  // foxBBoxHelper = new THREE.Box3Helper(foxBoundingBox, 0xff0000); // Red for
+  // scene.add(foxBBoxHelper);
+
+  const foxClips = fox.animations;
+  mixer3 = new THREE.AnimationMixer(foxModel); // Update the mixer with foxModel
+  const idleClip = THREE.AnimationClip.findByName(
+    foxClips,
+    "Gallop"
+  );
+    const idleAction = mixer3.clipAction(idleClip);
+    idleAction.setLoop(THREE.LoopRepeat);
+    idleAction.play();
+
+});
+
+
+//germanShepard
+let germanShepardModel;
+const germanShepardLoader = new GLTFLoader();
+germanShepardLoader.load("resources/German_Shepard.glb", function (germanShepard) {
+  germanShepardModel = germanShepard.scene; // Assign the loaded germanShepard model to germanShepardModel
+  scene.add(germanShepardModel);
+  germanShepardModel.scale.set(7, 7, 7);
+  germanShepardModel.position.set(2, 3,72);
+  germanShepardModel.rotation.y = THREE.MathUtils.degToRad(165)
+  germanShepardModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  const germanShepardClips = germanShepard.animations;
+  if (germanShepardClips.length === 0) {
+    console.error("No animations found in German_Shepard.glb");
+    return;
+  }
+
+  mixer4 = new THREE.AnimationMixer(germanShepardModel); // Update the mixer with germanShepardModel
+  const idleClip = THREE.AnimationClip.findByName(germanShepardClips, "Idle_2");
+  
+  if (!idleClip) {
+    console.error("Idle_2 animation clip not found in German_Shepard.glb");
+    return;
+  }
+  
+  const idleGermanAction = mixer4.clipAction(idleClip);
+  idleGermanAction.setLoop(THREE.LoopRepeat);
+  idleGermanAction.play();
+});
+
+
 
 // Adventurer
 const adventurerLoader = new GLTFLoader();
@@ -279,7 +317,11 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
 
 // Kaca 1
 const kaca1 = new THREE.BoxGeometry(7.5, 9, 1);
-const kacaMaterial1 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const kacaMaterial1 = new THREE.MeshPhysicalMaterial({
+  color: 0x4287f5,
+  transparent: true,
+  opacity: 0.2,
+});
 kacaMaterial1.transmission = 1.0;
 kacaMaterial1.roughness = 0.0;
 const cube1 = new THREE.Mesh(kaca1, kacaMaterial1);
@@ -289,7 +331,11 @@ cube1.receiveShadow = true;
 scene.add(cube1);
 
 const kaca2 = new THREE.BoxGeometry(7.5, 9, 1);
-const kacaMaterial2 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const kacaMaterial2 = new THREE.MeshPhysicalMaterial({
+  color: 0x4287f5,
+  transparent: true,
+  opacity: 0.2,
+});
 kacaMaterial2.transmission = 1.0;
 kacaMaterial2.roughness = 0.0;
 const cube2 = new THREE.Mesh(kaca2, kacaMaterial2);
@@ -299,61 +345,71 @@ cube2.receiveShadow = true;
 scene.add(cube2);
 
 const kaca3 = new THREE.BoxGeometry(7.5, 9, 1);
-const kacaMaterial3 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const kacaMaterial3 = new THREE.MeshPhysicalMaterial({
+  color: 0x4287f5,
+  transparent: true,
+  opacity: 0.2,
+});
 const cube3 = new THREE.Mesh(kaca3, kacaMaterial3);
 cube3.position.set(-6, 16, -168);
 scene.add(cube3);
 
 const kaca4 = new THREE.BoxGeometry(7.5, 9, 1);
-const kacaMaterial4 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const kacaMaterial4 = new THREE.MeshPhysicalMaterial({
+  color: 0x4287f5,
+  transparent: true,
+  opacity: 0.2,
+});
 const cube4 = new THREE.Mesh(kaca4, kacaMaterial4);
 cube4.position.set(-33, 16, -168);
 scene.add(cube4);
 
 const kaca5 = new THREE.BoxGeometry(7.5, 9, 1);
-const kacaMaterial5 = new THREE.MeshPhysicalMaterial({ color: 0x4287f5, transparent: true, opacity: 0.2 });
+const kacaMaterial5 = new THREE.MeshPhysicalMaterial({
+  color: 0x4287f5,
+  transparent: true,
+  opacity: 0.2,
+});
 const cube5 = new THREE.Mesh(kaca5, kacaMaterial5);
 cube5.position.set(2.8, 16, -152.5);
 cube5.rotation.set(0, Math.PI / 2, 0);
 scene.add(cube5);
 
-
-const bottle = new THREE.CylinderGeometry( 0.5, 0.5, 10, 8 ); 
-const bottleMaterial = new THREE.MeshPhysicalMaterial( {
-  color:  	0x00FFFF,
+const bottle = new THREE.CylinderGeometry(0.5, 0.5, 10, 8);
+const bottleMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0x00ffff,
   transmission: 1.0,
   roughness: 0,
-  ior:1.7,
+  ior: 1.7,
   thickness: 0.2,
-  specularIntensity:1.0,
-  clearcoat: 1
-} ); 
-const waterBottle = new THREE.Mesh( bottle, bottleMaterial );
-waterBottle.position.set(0, 0, 50) 
-scene.add( waterBottle );
+  specularIntensity: 1.0,
+  clearcoat: 1,
+});
+const waterBottle = new THREE.Mesh(bottle, bottleMaterial);
+waterBottle.position.set(0, 0, 68);
+scene.add(waterBottle);
 
-
-const bottleTop = new THREE.CylinderGeometry(0.25,0.5, 1, 8); 
-const bottleTopMaterial = new THREE.MeshPhysicalMaterial( {
-  color:  	0x00FFFF,
+const bottleTop = new THREE.CylinderGeometry(0.25, 0.5, 1, 8);
+const bottleTopMaterial = new THREE.MeshPhysicalMaterial({
+  color: 0x00ffff,
   transmission: 1.0,
   roughness: 0,
-  ior:1.7,
+  ior: 1.7,
   thickness: 0.2,
-  specularIntensity:1.0,
-  clearcoat: 1
-} ); 
-const waterBottleTop = new THREE.Mesh( bottleTop, bottleTopMaterial );
-waterBottleTop.position.set(0, 5.5, 50) 
+  specularIntensity: 1.0,
+  clearcoat: 1,
+});
+const waterBottleTop = new THREE.Mesh(bottleTop, bottleTopMaterial);
+waterBottleTop.position.set(0, 5.5, 68);
 scene.add(waterBottleTop);
 
-const bottleCap = new THREE.CylinderGeometry(0.25,0.25, 0.25, 8); 
-const bottleCapMaterial = new THREE.MeshBasicMaterial( {
-  color: new THREE.Color(1,1,1)} ); 
-const waterBottleCap = new THREE.Mesh( bottleCap, bottleCapMaterial );
-waterBottleCap.position.set(0, 6.25, 50) 
+const bottleCap = new THREE.CylinderGeometry(0.25, 0.25, 0.25, 8);
+const bottleCapMaterial = new THREE.MeshBasicMaterial({
+  color: new THREE.Color(1, 1, 1),
+});
+const waterBottleCap = new THREE.Mesh(bottleCap, bottleCapMaterial);
+waterBottleCap.position.set(0, 6.25, 68);
 scene.add(waterBottleCap);
-
 
 function createPlayer() {
   player = new Player(
@@ -379,7 +435,6 @@ const ghostMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
 });
 const ghostModel = new THREE.Mesh(ghostGeometry, ghostMaterial);
-
 
 ghostModel.position.set(0, 0, 0);
 
@@ -452,8 +507,8 @@ scene.add(dLight);
 // Others
 scene.fog = new THREE.Fog(0x88939e, 50, 120);
 let stagSpeed = 0.1;
+let foxSpeed = 0.5;
 let rotateStag = false;
-
 // Resize
 window.addEventListener("resize", () => {
   sizes.height = window.innerHeight;
@@ -462,7 +517,6 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(sizes.width, sizes.height);
 });
-
 
 // Animate loop
 function animate() {
@@ -473,26 +527,27 @@ function animate() {
   if (mixer) mixer.update(delta);
   if (mixer1) mixer1.update(delta);
   if (mixer2) mixer2.update(delta);
+  if (mixer3) mixer3.update(delta);
+  if (mixer4) mixer4.update(delta);
   if (player) {
     // Check if player is defined before updating
     player.update(delta);
     player.camera.updateHeadBob_(delta);
   }
 
-  // // Update day-night cycle
-  // cycleTime += delta;
-  // const cycleProgress = (cycleTime % cycleDuration) / cycleDuration;
-  // const colorFactor = 0.5 * (1 + Math.sin(cycleProgress * 2 * Math.PI)); // Ranges from 0 to 1
+  // Update day-night cycle
+  cycleTime += delta;
+  const cycleProgress = (cycleTime % cycleDuration) / cycleDuration;
+  const colorFactor = 0.5 * (1 + Math.sin(cycleProgress * 2 * Math.PI)); // Ranges from 0 to 1
 
-  // const currentFogColor = dayColor.clone().lerp(nightColor, colorFactor);
-  // const currentAmbientLightColor = dayAmbientLightColor.clone().lerp(nightAmbientLightColor, colorFactor);
-  // const currentDirectionalLightColor = dayDirectionalLightColor.clone().lerp(nightDirectionalLightColor, colorFactor);
+  const currentFogColor = dayColor.clone().lerp(nightColor, colorFactor);
+  const currentAmbientLightColor = dayAmbientLightColor.clone().lerp(nightAmbientLightColor, colorFactor);
+  const currentDirectionalLightColor = dayDirectionalLightColor.clone().lerp(nightDirectionalLightColor, colorFactor);
 
-  // scene.fog.color = currentFogColor;
-  // renderer.setClearColor(currentFogColor);
-  // ambientLight.color = currentAmbientLightColor;
-  // dLight.color = currentDirectionalLightColor;
-
+  scene.fog.color = currentFogColor;
+  renderer.setClearColor(currentFogColor);
+  ambientLight.color = currentAmbientLightColor;
+  dLight.color = currentDirectionalLightColor;
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
@@ -513,6 +568,7 @@ function animate() {
       }
     }
 
+
     if (walkBoundingBox) {
       walkBoundingBox.setFromObject(walkModel);
       scene.remove(walkBBoxHelper);
@@ -521,6 +577,20 @@ function animate() {
     }
   }
 
+  if (foxModel) {
+    foxModel.position.x += foxSpeed;
+    if (foxModel.position.x >= 150) {
+      foxSpeed *= -1;
+    } else if (foxModel.position.x < -100) {
+      foxSpeed *= -1;
+    }
+    if(foxModel.position.x >= 140 || foxModel.position.x < -100){
+      foxModel.rotation.y += THREE.MathUtils.degToRad(180)
+    }
+    if (foxBoundingBox) {
+      foxBoundingBox.setFromObject(foxModel);
+    }
+  }
   if (stagBoundingBox) {
     stagBoundingBox.setFromObject(stagModel);
     scene.remove(stagBBoxHelper);
