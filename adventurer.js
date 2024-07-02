@@ -179,7 +179,7 @@ export class Player {
         } else if (this.cameraRotationZ < 0) {
           this.cameraRotationZ = Math.min(this.cameraRotationZ + this.rotationSpeed * dt, 0);
         }
-      }a
+      }
     }
 
     this.currentRotation.z = THREE.MathUtils.lerp(
@@ -411,12 +411,10 @@ export class ThirdPersonCamera {
       new THREE.Vector3(0, 1, 0),
       rotation.y + cameraRotationY
     );
-    temp.applyAxisAngle(
-      new THREE.Vector3(0, 0, 1),
-      rotation.z + cameraRotationZ
-    );
-
-
+    // temp.applyAxisAngle(
+    //   new THREE.Vector3(0, 0, 1),
+    //   rotation.z + cameraRotationZ
+    // );
     temp.add(target);
 
     
