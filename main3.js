@@ -7,13 +7,15 @@ import { Ghost, GhostController, GhostCamera } from "./ghost.js";
 // Clock
 const clock = new THREE.Clock();
 // Mixers
-let mixer, mixer1, mixer2, mixer3, mixer4;
+let mixer, mixer1, mixer2, mixer3, mixer4, mixer5, mixer6;
 // Player
 let player, ghostPlayer, mainPlayer;
 // Bounding box
 let stagBoundingBox = null;
 let walkBoundingBox = null;
 let foxBoundingBox = null;
+let deerBoundingBox = null;
+let wolfBoundingBox = null;
 let adventurerBoundingBox = null;
 let enviromentBoundingBox = [];
 // Initialize bounding boxes for debugging visualization
@@ -411,6 +413,73 @@ const waterBottleCap = new THREE.Mesh(bottleCap, bottleCapMaterial);
 waterBottleCap.position.set(0, 6.25, 68);
 scene.add(waterBottleCap);
 
+// Deer dead
+let deerDeadModel;
+const deerLoader = new GLTFLoader();
+deerLoader.load("resources/Deer.glb", function (deer) {
+  deerDeadModel = deer.scene; // Assign the loaded fox model to foxModel
+  scene.add(deerDeadModel);
+  deerDeadModel.scale.set(3, 3, 3);
+  deerDeadModel.position.set(50, 3, 0);
+  deerDeadModel.rotation.y = THREE.MathUtils.degToRad(0)
+  deerDeadModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  deerBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(deerBoundingBox);
+  // foxBBoxHelper = new THREE.Box3Helper(foxBoundingBox, 0xff0000); // Red for
+  // scene.add(foxBBoxHelper);
+
+  const deerClips = deer.animations;
+  mixer5 = new THREE.AnimationMixer(deerDeadModel); // Update the mixer with foxModel
+  const idleClip = THREE.AnimationClip.findByName(
+    deerClips,
+    "Death"
+  );
+    const idleAction = mixer5.clipAction(idleClip);
+    idleAction.clampWhenFinished = true
+    idleAction.loop = THREE.LoopOnce
+    idleAction.play();
+
+});
+
+// Wolf eat
+let wolfEatModel;
+const wolfLoader = new GLTFLoader();
+wolfLoader.load("resources/Wolf.glb", function (wolf) {
+  wolfEatModel = wolf.scene; // Assign the loaded fox model to foxModel
+  scene.add(wolfEatModel);
+  wolfEatModel.scale.set(3, 3, 3);
+  wolfEatModel.position.set(63, 3, 0);
+  wolfEatModel.rotation.y = THREE.MathUtils.degToRad(270)
+  wolfEatModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  wolfBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push( wolfBoundingBox);
+  // foxBBoxHelper = new THREE.Box3Helper(foxBoundingBox, 0xff0000); // Red for
+  // scene.add(foxBBoxHelper);
+
+  const deerClips = wolf.animations;
+  mixer6 = new THREE.AnimationMixer(wolfEatModel); // Update the mixer with foxModel
+  const idleClip = THREE.AnimationClip.findByName(
+    deerClips,
+    "Eating"
+  );
+    const idleAction = mixer6.clipAction(idleClip);
+    idleAction.setLoop(THREE.LoopRepeat);
+    idleAction.play();
+
+});
+
 function createPlayer() {
   player = new Player(
     new ThirdPersonCamera(
@@ -529,6 +598,8 @@ function animate() {
   if (mixer2) mixer2.update(delta);
   if (mixer3) mixer3.update(delta);
   if (mixer4) mixer4.update(delta);
+  if (mixer5) mixer5.update(delta);
+  if (mixer6) mixer6.update(delta);
   if (player) {
     // Check if player is defined before updating
     player.update(delta);
@@ -606,6 +677,14 @@ function animate() {
     //   0x0000ff
     // );
     // scene.add(adventurerBBoxHelper);
+  }
+
+  if (deerBoundingBox) {
+    deerBoundingBox.setFromObject(deerDeadModel)
+  }
+
+  if (wolfBoundingBox) {
+    wolfBoundingBox.setFromObject(wolfEatModel)
   }
 }
 
