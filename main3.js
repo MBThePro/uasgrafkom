@@ -7,7 +7,7 @@ import { Ghost, GhostController, GhostCamera } from "./ghost.js";
 // Clock
 const clock = new THREE.Clock();
 // Mixers
-let mixer, mixer1, mixer2, mixer3, mixer4, mixer5, mixer6, mixer7, mixer8, mixer9;
+let mixer, mixer1, mixer2, mixer3, mixer4, mixer5, mixer6, mixer7, mixer8, mixer9, mixer10, mixer11, mixer12;
 // Player
 let player, ghostPlayer, mainPlayer;
 // Bounding box
@@ -144,6 +144,40 @@ lampu2Loader.load("resources/Lantern.glb", function (lampu2) {
   });
   var pointLantern2 = new THREE.PointLight(0xffff11, 100);
   lampu2Model.add(pointLantern2);
+});
+
+// Lampu3
+const lampu3Loader = new GLTFLoader();
+lampu3Loader.load("resources/Lantern.glb", function (lampu3) {
+  const lampu3Model = lampu3.scene;
+  scene.add(lampu3Model);
+  lampu3Model.scale.set(10, 10, 10);
+  lampu3Model.position.set(-110, 15, -40);
+  lampu3Model.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+  var pointLantern3 = new THREE.PointLight(0xffff11, 200);
+  lampu3Model.add(pointLantern3);
+});
+
+// Lampu4
+const lampu4Loader = new GLTFLoader();
+lampu4Loader.load("resources/Lantern.glb", function (lampu4) {
+  const lampu4Model = lampu4.scene;
+  scene.add(lampu4Model);
+  lampu4Model.scale.set(10, 10, 10);
+  lampu4Model.position.set(-110, 15, 55);
+  lampu4Model.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+  var pointLantern4 = new THREE.PointLight(0xffff11, 200);
+  lampu4Model.add(pointLantern4);
 });
 
 // Stag 1
@@ -353,6 +387,75 @@ doeLoader2.load("resources/Deer.glb", function (doe2) {
   const eatingClipDeer3 = THREE.AnimationClip.findByName(deer3Clips, "Idle");
   const eatingActionDeer3 = mixer9.clipAction(eatingClipDeer3);
   eatingActionDeer3.play();
+});
+
+// Sheep 
+let sheepModel1;
+const sheepLoader1 = new GLTFLoader();
+sheepLoader1.load("resources/Sheep.glb", function (sheep1) {
+  sheepModel1 = sheep1.scene; // Assign the loaded stag model to stagModel
+  scene.add(sheepModel1);
+  sheepModel1.scale.set(2.5, 2.5, 2.5);
+  sheepModel1.position.set(-130, 3, 10);
+  sheepModel1.rotation.set(0, 2, 0);
+  sheepModel1.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  const sheepClips1 = sheep1.animations;
+  mixer10 = new THREE.AnimationMixer(sheepModel1); // Update the mixer with doeModel
+  const idleSheepClip1 = THREE.AnimationClip.findByName(sheepClips1, "Idle");
+  const idleSheepAction1 = mixer10.clipAction(idleSheepClip1);
+  idleSheepAction1.play();
+});
+
+// Sheep2 
+let sheepModel2;
+const sheepLoader2 = new GLTFLoader();
+sheepLoader2.load("resources/Sheep.glb", function (sheep2) {
+  sheepModel2 = sheep2.scene; // Assign the loaded stag model to stagModel
+  scene.add(sheepModel2);
+  sheepModel2.scale.set(2.5, 2.5, 2.5);
+  sheepModel2.position.set(-140, 3, 40);
+  sheepModel2.rotation.set(0, 4, 0);
+  sheepModel2.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  const sheepClips2 = sheep2.animations;
+  mixer11 = new THREE.AnimationMixer(sheepModel2); // Update the mixer with doeModel
+  const idleSheepClip2 = THREE.AnimationClip.findByName(sheepClips2, "Idle");
+  const idleSheepAction2 = mixer11.clipAction(idleSheepClip2);
+  idleSheepAction2.play();
+});
+
+// Sheep2 
+let sheepModel3;
+const sheepLoader3 = new GLTFLoader();
+sheepLoader3.load("resources/Sheep.glb", function (sheep3) {
+  sheepModel3 = sheep3.scene; // Assign the loaded stag model to stagModel
+  scene.add(sheepModel3);
+  sheepModel3.scale.set(2.5, 2.5, 2.5);
+  sheepModel3.position.set(-140, 3, -20);
+  sheepModel3.rotation.set(0, 1, 0);
+  sheepModel3.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  const sheepClips3 = sheep3.animations;
+  mixer12 = new THREE.AnimationMixer(sheepModel3); // Update the mixer with doeModel
+  const idleSheepClip3 = THREE.AnimationClip.findByName(sheepClips3, "Idle");
+  const idleSheepAction3 = mixer12.clipAction(idleSheepClip3);
+  idleSheepAction3.play();
 });
 
 // Adventurer
@@ -596,7 +699,7 @@ rvLoader.load("resources/RV.glb", function (RV) {
   spotLight.penumbra = 0.2; // Soft edges for the spotlight
   spotLight.decay = 0.5; // How quickly the light dims
   spotLight.distance = 50; // The maximum range of the light
-  spotLight.power = 300;
+  spotLight.power = 120;
   spotLight.target = target
 
   // Enable shadows for the spotlight
@@ -708,17 +811,17 @@ scene.add(plane);
 plane.position.set(0, 3.2, 0);
 
 // Daynight color
-const dayColor = new THREE.Color(0x88939e);
+const dayColor = new THREE.Color(0xe6eaf0);
 const nightColor = new THREE.Color(0x000000);
-const dayAmbientLightColor = new THREE.Color(0x88939e);
+const dayAmbientLightColor = new THREE.Color(0xe6eaf0);
 const nightAmbientLightColor = new THREE.Color(0x171515);
 const dayDirectionalLightColor = new THREE.Color(0x47596b);
 const nightDirectionalLightColor = new THREE.Color(0x1b1b1c);
-const cycleDuration = 120; // Duration of a full day-night cycle in seconds
+const cycleDuration = 300; // Duration of a full day-night cycle in seconds
 let cycleTime = 0;
 
 // Light
-const ambientLight = new THREE.AmbientLight(0x88939e, 0.8);
+const ambientLight = new THREE.AmbientLight(0xe6eaf0, 0.8);
 scene.add(ambientLight);
 
 const dLight = new THREE.DirectionalLight(0x47596b, 4); // White light
@@ -764,6 +867,9 @@ function animate() {
   if (mixer7) mixer7.update(delta);
   if (mixer8) mixer8.update(delta / 1.5);
   if (mixer9) mixer9.update(delta);
+  if (mixer10) mixer10.update(delta);
+  if (mixer11) mixer11.update(delta);
+  if (mixer12) mixer12.update(delta);
   if (player) {
     // Check if player is defined before updating
     player.update(delta);
