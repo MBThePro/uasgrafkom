@@ -12,6 +12,7 @@ let mixer, mixer1, mixer2, mixer3, mixer4, mixer5, mixer6, mixer7, mixer8, mixer
 let player, ghostPlayer, mainPlayer;
 // Bounding box
 let stagBoundingBox = null;
+let doeBoundingBox = null;
 let walkBoundingBox = null;
 let foxBoundingBox = null;
 let deerBoundingBox = null;
@@ -286,8 +287,8 @@ doeLoader.load("resources/Deer.glb", function (doe) {
     }
   });
 
-  // doeBoundingBox = new THREE.Box3();
-  // enviromentBoundingBox.push(doeBoundingBox);
+  doeBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(doeBoundingBox);
   // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
   // scene.add(stagBBoxHelper);
 
@@ -314,8 +315,8 @@ doeLoader1.load("resources/Deer.glb", function (doe1) {
     }
   });
 
-  // doeBoundingBox = new THREE.Box3();
-  // enviromentBoundingBox.push(doeBoundingBox);
+  doeBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(doeBoundingBox);
   // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
   // scene.add(stagBBoxHelper);
 
@@ -342,8 +343,8 @@ doeLoader2.load("resources/Deer.glb", function (doe2) {
     }
   });
 
-  // doeBoundingBox = new THREE.Box3();
-  // enviromentBoundingBox.push(doeBoundingBox);
+  doeBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push(doeBoundingBox);
   // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
   // scene.add(stagBBoxHelper);
 
@@ -845,6 +846,18 @@ function animate() {
 
   if (deerBoundingBox) {
     deerBoundingBox.setFromObject(deerDeadModel)
+  }
+
+  if (doeBoundingBox) {
+    doeBoundingBox.setFromObject(doeModel)
+  }
+
+  if (doeBoundingBox) {
+    doeBoundingBox.setFromObject(doeModel1)
+  }
+
+  if (doeBoundingBox) {
+    doeBoundingBox.setFromObject(doeModel2)
   }
 
   if (wolfBoundingBox) {
