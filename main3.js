@@ -7,7 +7,7 @@ import { Ghost, GhostController, GhostCamera } from "./ghost.js";
 // Clock
 const clock = new THREE.Clock();
 // Mixers
-let mixer, mixer1, mixer2, mixer3, mixer4, mixer5, mixer6;
+let mixer, mixer1, mixer2, mixer3, mixer4, mixer5, mixer6, mixer7, mixer8, mixer9;
 // Player
 let player, ghostPlayer, mainPlayer;
 // Bounding box
@@ -63,11 +63,11 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       childBoundingBox.max.multiply(forestModel.scale);
       childBoundingBox.min.add(forestModel.position);
       childBoundingBox.max.add(forestModel.position);
-      childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
+      // childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
 
       // console.log(childBoundingBox.max.x)
       // if (childBoundingBox.max.x == 3.9582591271027923) {
-        console.log(child.parent.name)
+      console.log(child.parent.name)
       // }
       // console.log(child)
 
@@ -79,12 +79,12 @@ forestLoader.load("resources/Environment.glb", function (forest) {
         childBoundingBox.expandByScalar(-1.9);
       if (child.parent.name.includes("Tent"))
         childBoundingBox.expandByScalar(-9);
-        if (child.name.includes("Resource_Rock_1"))
+      if (child.name.includes("Resource_Rock_1"))
         childBoundingBox.expandByScalar(-6);
       // if (child.parent.name.includes("Guitar")) child.position.y -= 0.1
 
       if (
-        !(child.parent.name == "grasses" || child.parent.name.includes("rocks")|| child.parent.name.includes("Guitar1"))
+        !(child.parent.name == "grasses" || child.parent.name.includes("rocks") || child.parent.name.includes("Guitar1"))
       )
         enviromentBoundingBox.push(childBoundingBox);
       scene.add(childBBoxHelper);
@@ -152,7 +152,7 @@ stagLoader.load("resources/Stag.glb", function (stag) {
   stagModel = stag.scene; // Assign the loaded stag model to stagModel
   scene.add(stagModel);
   stagModel.scale.set(3, 3, 3);
-  stagModel.position.set(15, 3, 20);
+  stagModel.position.set(80, 3, 10);
   stagModel.traverse(function (child) {
     if (child.isMesh) {
       child.castShadow = true;
@@ -181,7 +181,7 @@ stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
   walkModel.opacity = 0.2;
   scene.add(walkModel);
   walkModel.scale.set(3, 3, 3);
-  walkModel.position.set(-30, 3, -40);
+  walkModel.position.set(130, 3, -40);
   walkModel.traverse(function (child) {
     if (child.isMesh) {
       child.castShadow = true;
@@ -228,9 +228,9 @@ foxLoader.load("resources/Fox.glb", function (fox) {
     foxClips,
     "Gallop"
   );
-    const idleAction = mixer3.clipAction(idleClip);
-    idleAction.setLoop(THREE.LoopRepeat);
-    idleAction.play();
+  const idleAction = mixer3.clipAction(idleClip);
+  idleAction.setLoop(THREE.LoopRepeat);
+  idleAction.play();
 
 });
 
@@ -242,7 +242,7 @@ germanShepardLoader.load("resources/German_Shepard.glb", function (germanShepard
   germanShepardModel = germanShepard.scene; // Assign the loaded germanShepard model to germanShepardModel
   scene.add(germanShepardModel);
   germanShepardModel.scale.set(7, 7, 7);
-  germanShepardModel.position.set(2, 3,72);
+  germanShepardModel.position.set(2, 3, 72);
   germanShepardModel.rotation.y = THREE.MathUtils.degToRad(165)
   germanShepardModel.traverse(function (child) {
     if (child.isMesh) {
@@ -259,18 +259,100 @@ germanShepardLoader.load("resources/German_Shepard.glb", function (germanShepard
 
   mixer4 = new THREE.AnimationMixer(germanShepardModel); // Update the mixer with germanShepardModel
   const idleClip = THREE.AnimationClip.findByName(germanShepardClips, "Idle_2");
-  
+
   if (!idleClip) {
     console.error("Idle_2 animation clip not found in German_Shepard.glb");
     return;
   }
-  
+
   const idleGermanAction = mixer4.clipAction(idleClip);
   idleGermanAction.setLoop(THREE.LoopRepeat);
   idleGermanAction.play();
 });
 
+// Deer model 1
+let doeModel;
+const doeLoader = new GLTFLoader();
+doeLoader.load("resources/Deer.glb", function (doe) {
+  doeModel = doe.scene; // Assign the loaded stag model to stagModel
+  scene.add(doeModel);
+  doeModel.scale.set(3, 3, 3);
+  doeModel.position.set(95, 3, -20);
+  doeModel.rotation.set(0, 2, 0);
+  doeModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
 
+  // doeBoundingBox = new THREE.Box3();
+  // enviromentBoundingBox.push(doeBoundingBox);
+  // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
+  // scene.add(stagBBoxHelper);
+
+  const deer1Clips = doe.animations;
+  mixer7 = new THREE.AnimationMixer(doeModel); // Update the mixer with doeModel
+  const eatingClipDeer1 = THREE.AnimationClip.findByName(deer1Clips, "Eating");
+  const eatingActionDeer1 = mixer7.clipAction(eatingClipDeer1);
+  eatingActionDeer1.play();
+});
+
+// Deer model 2
+let doeModel1;
+const doeLoader1 = new GLTFLoader();
+doeLoader1.load("resources/Deer.glb", function (doe1) {
+  doeModel1 = doe1.scene; // Assign the loaded stag model to stagModel
+  scene.add(doeModel1);
+  doeModel1.scale.set(3, 3, 3);
+  doeModel1.position.set(100, 3, 10);
+  doeModel1.rotation.set(0, 3, 0);
+  doeModel1.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  // doeBoundingBox = new THREE.Box3();
+  // enviromentBoundingBox.push(doeBoundingBox);
+  // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
+  // scene.add(stagBBoxHelper);
+
+  const deer2Clips = doe1.animations;
+  mixer8 = new THREE.AnimationMixer(doeModel1); // Update the mixer with doeModel
+  const eatingClipDeer2 = THREE.AnimationClip.findByName(deer2Clips, "Eating");
+  const eatingActionDeer2 = mixer8.clipAction(eatingClipDeer2);
+  eatingActionDeer2.play();
+});
+
+// Deer model 3
+let doeModel2;
+const doeLoader2 = new GLTFLoader();
+doeLoader2.load("resources/Deer.glb", function (doe2) {
+  doeModel2 = doe2.scene; // Assign the loaded stag model to stagModel
+  scene.add(doeModel2);
+  doeModel2.scale.set(3, 3, 3);
+  doeModel2.position.set(70, 3, -30);
+  doeModel2.rotation.set(0, 4, 0);
+  doeModel2.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  // doeBoundingBox = new THREE.Box3();
+  // enviromentBoundingBox.push(doeBoundingBox);
+  // stagBBoxHelper = new THREE.Box3Helper(stagBoundingBox, 0xff0000); // Red for
+  // scene.add(stagBBoxHelper);
+
+  const deer3Clips = doe2.animations;
+  mixer9 = new THREE.AnimationMixer(doeModel2); // Update the mixer with doeModel
+  const eatingClipDeer3 = THREE.AnimationClip.findByName(deer3Clips, "Idle");
+  const eatingActionDeer3 = mixer9.clipAction(eatingClipDeer3);
+  eatingActionDeer3.play();
+});
 
 // Adventurer
 const adventurerLoader = new GLTFLoader();
@@ -421,7 +503,7 @@ deerLoader.load("resources/Deer.glb", function (deer) {
   deerDeadModel = deer.scene; // Assign the loaded fox model to foxModel
   scene.add(deerDeadModel);
   deerDeadModel.scale.set(3, 3, 3);
-  deerDeadModel.position.set(50, 3, 0);
+  deerDeadModel.position.set(-43, 8.5, 210);
   deerDeadModel.rotation.y = THREE.MathUtils.degToRad(0)
   deerDeadModel.traverse(function (child) {
     if (child.isMesh) {
@@ -441,10 +523,10 @@ deerLoader.load("resources/Deer.glb", function (deer) {
     deerClips,
     "Death"
   );
-    const idleAction = mixer5.clipAction(idleClip);
-    idleAction.clampWhenFinished = true
-    idleAction.loop = THREE.LoopOnce
-    idleAction.play();
+  const idleAction = mixer5.clipAction(idleClip);
+  idleAction.clampWhenFinished = true
+  idleAction.loop = THREE.LoopOnce
+  idleAction.play();
 
 });
 
@@ -455,7 +537,7 @@ wolfLoader.load("resources/Wolf.glb", function (wolf) {
   wolfEatModel = wolf.scene; // Assign the loaded fox model to foxModel
   scene.add(wolfEatModel);
   wolfEatModel.scale.set(3, 3, 3);
-  wolfEatModel.position.set(63, 3, 0);
+  wolfEatModel.position.set(-30, 8.5, 210);
   wolfEatModel.rotation.y = THREE.MathUtils.degToRad(270)
   wolfEatModel.traverse(function (child) {
     if (child.isMesh) {
@@ -465,7 +547,7 @@ wolfLoader.load("resources/Wolf.glb", function (wolf) {
   });
 
   wolfBoundingBox = new THREE.Box3();
-  enviromentBoundingBox.push( wolfBoundingBox);
+  enviromentBoundingBox.push(wolfBoundingBox);
   // foxBBoxHelper = new THREE.Box3Helper(foxBoundingBox, 0xff0000); // Red for
   // scene.add(foxBBoxHelper);
 
@@ -475,9 +557,9 @@ wolfLoader.load("resources/Wolf.glb", function (wolf) {
     deerClips,
     "Eating"
   );
-    const idleAction = mixer6.clipAction(idleClip);
-    idleAction.setLoop(THREE.LoopRepeat);
-    idleAction.play();
+  const idleAction = mixer6.clipAction(idleClip);
+  idleAction.setLoop(THREE.LoopRepeat);
+  idleAction.play();
 
 });
 
@@ -500,7 +582,7 @@ rvLoader.load("resources/RV.glb", function (RV) {
   scene.add(rvModel);
 
   rvBoundingBox = new THREE.Box3();
-  enviromentBoundingBox.push( rvBoundingBox);
+  enviromentBoundingBox.push(rvBoundingBox);
 
   const target = new THREE.Object3D();
   target.position.set(-30, -5, -60)
@@ -631,7 +713,7 @@ const dayAmbientLightColor = new THREE.Color(0x88939e);
 const nightAmbientLightColor = new THREE.Color(0x171515);
 const dayDirectionalLightColor = new THREE.Color(0x47596b);
 const nightDirectionalLightColor = new THREE.Color(0x1b1b1c);
-const cycleDuration = 60; // Duration of a full day-night cycle in seconds
+const cycleDuration = 120; // Duration of a full day-night cycle in seconds
 let cycleTime = 0;
 
 // Light
@@ -678,6 +760,9 @@ function animate() {
   if (mixer4) mixer4.update(delta);
   if (mixer5) mixer5.update(delta);
   if (mixer6) mixer6.update(delta);
+  if (mixer7) mixer7.update(delta);
+  if (mixer8) mixer8.update(delta / 1.5);
+  if (mixer9) mixer9.update(delta);
   if (player) {
     // Check if player is defined before updating
     player.update(delta);
@@ -701,10 +786,10 @@ function animate() {
 
   if (walkModel) {
     walkModel.position.z += stagSpeed;
-    if (walkModel.position.z >= 1) {
+    if (walkModel.position.z >= 10) {
       rotateStag = true;
       stagSpeed *= -1;
-    } else if (walkModel.position.z < -40) {
+    } else if (walkModel.position.z < -60) {
       rotateStag = false;
       stagSpeed *= -1;
     }
@@ -734,7 +819,7 @@ function animate() {
     } else if (foxModel.position.x < -100) {
       foxSpeed *= -1;
     }
-    if(foxModel.position.x >= 140 || foxModel.position.x < -100){
+    if (foxModel.position.x >= 140 || foxModel.position.x < -100) {
       foxModel.rotation.y += THREE.MathUtils.degToRad(180)
     }
     if (foxBoundingBox) {
