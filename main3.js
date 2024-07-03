@@ -106,6 +106,18 @@ campfireLoader.load("resources/Campfire.glb", function (campfire) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
+
+      // If the mesh has multiple materials
+      if (Array.isArray(child.material)) {
+        child.material.forEach((material) => {
+          material.emissive = new THREE.Color(0xffaa33); // Adjust emissive color to make it look brighter
+          material.emissiveIntensity = 1.5; // Adjust intensity as needed
+        });
+      } else {
+        // If the mesh has a single material
+        child.material.emissive = new THREE.Color(0xffaa33); // Adjust emissive color to make it look brighter
+        child.material.emissiveIntensity = 1.5; // Adjust intensity as needed
+      }
     }
   });
   var pointLight = new THREE.PointLight(0xffff11, 200);
@@ -243,7 +255,7 @@ foxLoader.load("resources/Fox.glb", function (fox) {
   foxModel = fox.scene; // Assign the loaded fox model to foxModel
   scene.add(foxModel);
   foxModel.scale.set(3, 3, 3);
-  foxModel.position.set(15, 3, 180);
+  foxModel.position.set(15, 3, 170);
   foxModel.rotation.y = THREE.MathUtils.degToRad(90)
   foxModel.traverse(function (child) {
     if (child.isMesh) {
@@ -817,7 +829,7 @@ const dayAmbientLightColor = new THREE.Color(0xe6eaf0);
 const nightAmbientLightColor = new THREE.Color(0x171515);
 const dayDirectionalLightColor = new THREE.Color(0x47596b);
 const nightDirectionalLightColor = new THREE.Color(0x1b1b1c);
-const cycleDuration = 300; // Duration of a full day-night cycle in seconds
+const cycleDuration = 600; // Duration of a full day-night cycle in seconds
 let cycleTime = 0;
 
 // Light
@@ -873,7 +885,11 @@ function animate() {
   if (player) {
     // Check if player is defined before updating
     player.update(delta);
-    player.camera.updateHeadBob_(delta);
+
+    if (player === mainPlayer) {
+      player.camera.updateHeadBob_(delta);
+    }
+
     console.log(player)
   }
 
