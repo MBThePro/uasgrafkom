@@ -17,6 +17,7 @@ let foxBoundingBox = null;
 let deerBoundingBox = null;
 let wolfBoundingBox = null;
 let adventurerBoundingBox = null;
+let rvBoundingBox = null;
 let enviromentBoundingBox = [];
 // Initialize bounding boxes for debugging visualization
 let stagBBoxHelper, walkBBoxHelper, adventurerBBoxHelper;
@@ -480,6 +481,83 @@ wolfLoader.load("resources/Wolf.glb", function (wolf) {
 
 });
 
+// RV
+let rvModel;
+const rvLoader = new GLTFLoader();
+rvLoader.load("resources/RV.glb", function (RV) {
+  rvModel = RV.scene; // Assign the loaded RV model to rvModel
+  rvModel.scale.set(12, 12, 12);
+  rvModel.position.set(10, -5, -70);
+  rvModel.rotation.y = THREE.MathUtils.degToRad(0);
+  rvModel.traverse(function (child) {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  // Add the RV model to the scene
+  scene.add(rvModel);
+
+  rvBoundingBox = new THREE.Box3();
+  enviromentBoundingBox.push( rvBoundingBox);
+
+  const target = new THREE.Object3D();
+  target.position.set(-30, -5, -60)
+  scene.add(target)
+
+  // Add spotlight to simulate car light
+  const spotLight = new THREE.SpotLight(0xffffff);
+  spotLight.position.set(20, 8, -78); // Position the spotlight in front of the RV
+  spotLight.angle = Math.PI / 9; // Set the angle of the spotlight
+  spotLight.penumbra = 0.2; // Soft edges for the spotlight
+  spotLight.decay = 0.5; // How quickly the light dims
+  spotLight.distance = 50; // The maximum range of the light
+  spotLight.power = 300;
+  spotLight.target = target
+
+  // Enable shadows for the spotlight
+  spotLight.castShadow = true;
+  spotLight.shadow.mapSize.width = 1024;
+  spotLight.shadow.mapSize.height = 1024;
+  spotLight.shadow.camera.near = 10;
+  spotLight.shadow.camera.far = 200;
+
+  // Add the spotlight to the scene
+  scene.add(spotLight);
+
+  // const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+  // scene.add(spotLightHelper);
+  const target1 = new THREE.Object3D();
+  target1.position.set(-5, -5, -50)
+  scene.add(target1)
+
+  // Add spotlight to simulate car light
+  const spotLight1 = new THREE.SpotLight(0xffffff);
+  spotLight1.position.set(24, 8, -65); // Position the spotlight1 in front of the RV
+  spotLight1.angle = Math.PI / 9; // Set the angle of the spotlight1
+  spotLight1.penumbra = 0.2; // Soft edges for the spotlight1
+  spotLight1.decay = 0.5; // How quickly the light dims
+  spotLight1.distance = 50; // The maximum range of the light
+  spotLight1.power = 300;
+  spotLight1.target = target1
+
+  // Enable shadows for the spotlight1
+  spotLight1.castShadow = true;
+  spotLight1.shadow.mapSize.width = 1024;
+  spotLight1.shadow.mapSize.height = 1024;
+  spotLight1.shadow.camera.near = 10;
+  spotLight1.shadow.camera.far = 200;
+
+  // Add the spotlight1 to the scene
+  scene.add(spotLight1);
+
+
+  // // Optionally, add a helper to visualize the spotlight
+  // const spotLightHelper1 = new THREE.SpotLightHelper(spotLight1);
+  // scene.add(spotLightHelper1);
+});
+
 function createPlayer() {
   player = new Player(
     new ThirdPersonCamera(
@@ -604,6 +682,7 @@ function animate() {
     // Check if player is defined before updating
     player.update(delta);
     player.camera.updateHeadBob_(delta);
+    console.log(player)
   }
 
   // Update day-night cycle
@@ -685,6 +764,10 @@ function animate() {
 
   if (wolfBoundingBox) {
     wolfBoundingBox.setFromObject(wolfEatModel)
+  }
+
+  if (rvBoundingBox) {
+    rvBoundingBox.setFromObject(rvModel)
   }
 }
 
