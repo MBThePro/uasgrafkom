@@ -23,15 +23,15 @@ export class Player {
     this.rotationSpeed = Math.PI / 2;
     this.currentRotation = new THREE.Euler(0, 0, 0);
     this.rotationVector = new THREE.Vector3();
-    this.cameraBaseOffset = new THREE.Vector3(0, 17, -15.5); // For TPP
+    this.cameraBaseOffset = new THREE.Vector3(0, 16, -15.5); // For TPP
     this.cameraHeadOffset = new THREE.Vector3(0, 16, 0); // For FPP
     this.zoomLevel = 0;
     this.zoomIncrement = 5;
-    this.camera.positionOffset = this.cameraBaseOffset.clone();
-    this.camera.targetOffset = new THREE.Vector3(0, 10, 0);
+    this.camera.positionOffset = this.cameraBaseOffset.clone(); //offset posisi & orientasi relative camera sesuai dengan player
+    this.camera.targetOffset = new THREE.Vector3(0, 10, 0); //offset look camera ke terget
     this.mouseLookSpeed = 1.5;
-    this.cameraRotationY = 0;
-    this.cameraRotationZ = 0;
+    this.cameraRotationY = 0; //arbitary y
+    this.cameraRotationZ = 0; // arbitary z (tilt)
     this.xLevel = 0;
     this.isFpp = false;
     this.isZoomed = false;
@@ -48,7 +48,7 @@ export class Player {
     );
     for (const boundingBox of this.enviromentBoundingBox) {
       if (playerBoundingBox.intersectsBox(boundingBox)) {
-        console.log(boundingBox);
+        // console.log(boundingBox);
         return true;
       }
     }
@@ -65,14 +65,14 @@ export class Player {
   }
 
   update(dt) {
-    var direction = new THREE.Vector3(0, 0, 0);
+    var direction = new THREE.Vector3(0, 0, 0); //direksi
     let verticalMouseLookSpeed = this.mouseLookSpeed;
     // Define the limits for xLevel
     const xLevelMin = -Math.PI / 2; // Limit for looking straight up
     const xLevelMax = Math.PI / 2; // Limit for looking straight down
 
+    if (this.checkCollision()) this.controller.keys["forward"] = false; // kalau collision, ga bisa maju ke depan
     // Animation
-    if (this.checkCollision()) this.controller.keys["forward"] = false;
     if (this.controller.keys["Shift"]) {
       this.switchAnimation(this.adventurerActions["run"]);
     } else if (
@@ -95,72 +95,75 @@ export class Player {
     }
 
     if (this.controller.keys["forward"]) {
-      direction.z += this.speed * dt;
+      direction.z += this.speed * dt; //ngubah direction z
       headBobActive_ = true;
     }
     if (this.controller.keys["backward"]) {
       direction.z -= this.speed * dt;
     }
+    // console.log(direction.z);
     if (this.controller.keys["left"]) {
-      this.currentRotation.y += this.rotationSpeed * dt;
+      this.currentRotation.y += this.rotationSpeed * dt; //ngubah current rotation y
     }
     if (this.controller.keys["right"]) {
       this.currentRotation.y -= this.rotationSpeed * dt;
     }
     if (this.controller.keys["Shift"]) {
-      direction.multiplyScalar(2);
+      direction.multiplyScalar(2); //run, dikali skalar
       headBobSpeed = 0.65;
     } else {
       headBobSpeed = 0.5;
     }
     if (this.controller.keys["fpp"]) {
       this.isFpp = true;
-      this.camera.positionOffset.copy(this.cameraHeadOffset); // Set to head position for FPP
+      this.camera.positionOffset.copy(this.cameraHeadOffset); // Set to camera head for FPP
     }
     if (this.controller.keys["tpp"]) {
       this.isFpp = false;
-      this.camera.positionOffset.copy(this.cameraBaseOffset); // Set to default for TPP
+      this.camera.positionOffset.copy(this.cameraBaseOffset); // Set to camerabase for TPP
       this.cameraRotationZ = 0;
     }
-    if (this.controller.keys["rotateLeft"]) {
-      this.cameraRotationY += this.rotationSpeed * dt;
-    }
-    if (this.controller.keys["rotateRight"]) {
-      this.cameraRotationY -= this.rotationSpeed * dt;
+    if (
+      this.controller.keys["rotateLeft"] ||
+      this.controller.keys["rotateRight"]
+    ) {
+      this.cameraRotationY += this.controller.keys["rotateLeft"]
+        ? this.rotationSpeed * dt
+        : -this.rotationSpeed * dt;
+    } else {
+      this.cameraRotationY = THREE.MathUtils.lerp(this.cameraRotationY, 0, 0.1); // Reset camera rotation smooth 
     }
 
     if (this.controller.keys["zoomIn"] || this.controller.keys["zoomOut"]) {
       this.isZooming = true; // Set zooming state
       this.zoomLevel += this.controller.keys["zoomIn"]
         ? -this.zoomIncrement
-        : this.zoomIncrement;
-      const zoomFactor = this.zoomLevel * 0.1;
+        : this.zoomIncrement; // lamda check zoom in? ditambah/dikurang
+      const zoomFactor = this.zoomLevel * 0.1; // dikali kecepatan zoom
       if (!this.isFpp) {
+        // zoom offset tpp
         const zoomedOffset = new THREE.Vector3(
           0,
-          17 + zoomFactor * this.xLevel,
-          -15.5 - zoomFactor
+          17 + zoomFactor * this.xLevel, //dikali xLevel, sesuai hadap atas bawah
+          -15.5 - zoomFactor // kedepan belakang
         );
-        this.camera.positionOffset.copy(zoomedOffset);
-      }
-      else {
+        this.camera.positionOffset.copy(zoomedOffset); //dicopy position offset
+      } else {
+        //zoom offset fpp
         const zoomedOffset = new THREE.Vector3(
           0,
           16 + zoomFactor * this.xLevel,
-          0 - zoomFactor
+          0 - zoomFactor // kedepan belakang
         );
         this.camera.positionOffset.copy(zoomedOffset);
-
       }
     } else {
       this.zoomLevel = 0;
-      this.isZooming = false; // Reset zooming state
+      this.isZooming = false; // Reset Zoom kalau false/keyup
       if (this.isFpp) this.camera.positionOffset.copy(this.cameraHeadOffset);
       else this.camera.positionOffset.copy(this.cameraBaseOffset);
     }
 
-
-    const headTiltSpeed = 0.1;
     if (this.isFpp) {
       if (this.controller.keys["tiltLeft"]) {
         this.cameraRotationZ = Math.min(
@@ -173,21 +176,28 @@ export class Player {
           -15 * (Math.PI / 180)
         );
       } else {
-        // If no tilt keys are pressed, reset cameraRotationZ to zero
+        // keyup tilt, reset cameraRotationZ to zero
         if (this.cameraRotationZ > 0) {
-          this.cameraRotationZ = Math.max(this.cameraRotationZ - this.rotationSpeed * dt, 0);
+          this.cameraRotationZ = Math.max(
+            this.cameraRotationZ - this.rotationSpeed * dt,
+            0
+          );
         } else if (this.cameraRotationZ < 0) {
-          this.cameraRotationZ = Math.min(this.cameraRotationZ + this.rotationSpeed * dt, 0);
+          this.cameraRotationZ = Math.min(
+            this.cameraRotationZ + this.rotationSpeed * dt,
+            0
+          );
         }
       }
     }
 
     this.currentRotation.z = THREE.MathUtils.lerp(
-      this.currentRotation.z,
-      this.cameraRotationZ,
-      headTiltSpeed
-    );
+      this.currentRotation.z, //A
+      this.cameraRotationZ, //B tilt
+      0.1
+    ); // interpolasi sesuai dengan headtiltspeed biar transisi dari currentrotationz ke camerarotationz smooth
 
+    //mouse move x & y
     if (this.controller.mouseDown) {
       var dtMouse = this.controller.deltaMousePos;
       dtMouse.x = dtMouse.x / Math.PI;
@@ -197,18 +207,16 @@ export class Player {
 
       // Adjust the xLevel with clamping
       this.xLevel += dtMouse.y / 10;
-      this.xLevel = THREE.MathUtils.clamp(this.xLevel, xLevelMin, xLevelMax);
+      this.xLevel = THREE.MathUtils.clamp(this.xLevel, xLevelMin, xLevelMax); // min, max Xlevel
 
-      this.camera.targetOffset.y -= dtMouse.y * verticalMouseLookSpeed;
+      this.camera.targetOffset.y -= dtMouse.y * verticalMouseLookSpeed; // add dtmousey
       this.camera.targetOffset.y = THREE.MathUtils.clamp(
         this.camera.targetOffset.y,
         0,
         60
-      );
+      ); // min 0, max 60
     }
-
-    console.log(this.xLevel);
-    this.currentRotation.y += this.rotationVector.y * dt;
+    this.currentRotation.y += this.rotationVector.y * dt; // add dtmousex
     this.currentRotation.z += this.rotationVector.z * dt;
 
     // Reset
@@ -219,14 +227,6 @@ export class Player {
       new THREE.Vector3(0, 1, 0),
       this.currentRotation.y
     );
-
-    if (this.isFpp) {
-      // Apply camera rotation in FPP
-      direction.applyAxisAngle(
-        new THREE.Vector3(0, 1, 0),
-        this.cameraRotationY
-      );
-    }
 
     this.adventurerModel.position.add(direction);
     this.adventurerModel.rotation.copy(this.currentRotation);
@@ -411,15 +411,10 @@ export class ThirdPersonCamera {
       new THREE.Vector3(0, 1, 0),
       rotation.y + cameraRotationY
     );
-    // temp.applyAxisAngle(
-    //   new THREE.Vector3(0, 0, 1),
-    //   rotation.z + cameraRotationZ
-    // );
-    temp.add(target);
-
-
+    temp.add(target); 
     this.camera.position.copy(temp);
     if (!isZooming) {
+      //ngeprevent look at target saat zooming
       if (!isFpp) {
         var lookAtTarget = new THREE.Vector3();
         lookAtTarget.addVectors(target, this.targetOffset);

@@ -45,6 +45,8 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
+//Enviroment
+//forestModel&child
 let forestModel, childBoundingBox, childBBoxHelper;
 const forestLoader = new GLTFLoader();
 forestLoader.load("resources/Environment.glb", function (forest) {
@@ -64,28 +66,25 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       childBoundingBox.max.multiply(forestModel.scale);
       childBoundingBox.min.add(forestModel.position);
       childBoundingBox.max.add(forestModel.position);
-      // childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
+      childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
 
       // console.log(childBoundingBox.max.x)
-      // if (childBoundingBox.max.x == 3.9582591271027923) {
       console.log(child.parent.name)
-      // }
       // console.log(child)
-
       // scene.add(childBBoxHelper)
 
       if (child.parent.name.includes("Tree"))
-        childBoundingBox.expandByScalar(-10);
+        childBoundingBox.expandByScalar(-11);
       if (child.parent.name.includes("WoodLog"))
         childBoundingBox.expandByScalar(-1.9);
       if (child.parent.name.includes("Tent"))
         childBoundingBox.expandByScalar(-9);
       if (child.name.includes("Resource_Rock_1"))
         childBoundingBox.expandByScalar(-6);
-      // if (child.parent.name.includes("Guitar")) child.position.y -= 0.1
+    
 
       if (
-        !(child.parent.name == "grasses" || child.parent.name.includes("rocks") || child.parent.name.includes("Guitar1"))
+        !(child.parent.name == "grasses" || child.parent.name.includes("rocks") || child.parent.name == "Guitar1")
       )
         enviromentBoundingBox.push(childBoundingBox);
       scene.add(childBBoxHelper);
@@ -180,7 +179,7 @@ lampu4Loader.load("resources/Lantern.glb", function (lampu4) {
   lampu4Model.add(pointLantern4);
 });
 
-// Stag 1
+// Deer 1
 let stagModel;
 const stagLoader = new GLTFLoader();
 stagLoader.load("resources/Stag.glb", function (stag) {
@@ -207,7 +206,7 @@ stagLoader.load("resources/Stag.glb", function (stag) {
   eatingAction.play();
 });
 
-// Stag 2 (walk)
+// Deer 2 (walk)
 let walkModel;
 const stagWalkLoader = new GLTFLoader();
 stagWalkLoader.load("resources/Stag.glb", function (stagWalk) {
@@ -407,7 +406,7 @@ sheepLoader1.load("resources/Sheep.glb", function (sheep1) {
 
   const sheepClips1 = sheep1.animations;
   mixer10 = new THREE.AnimationMixer(sheepModel1); // Update the mixer with doeModel
-  const idleSheepClip1 = THREE.AnimationClip.findByName(sheepClips1, "Idle");
+  const idleSheepClip1 = THREE.AnimationClip.findByName(sheepClips1, "Armature|Idle");
   const idleSheepAction1 = mixer10.clipAction(idleSheepClip1);
   idleSheepAction1.play();
 });
@@ -430,12 +429,12 @@ sheepLoader2.load("resources/Sheep.glb", function (sheep2) {
 
   const sheepClips2 = sheep2.animations;
   mixer11 = new THREE.AnimationMixer(sheepModel2); // Update the mixer with doeModel
-  const idleSheepClip2 = THREE.AnimationClip.findByName(sheepClips2, "Idle");
+  const idleSheepClip2 = THREE.AnimationClip.findByName(sheepClips2, "Armature|Idle");
   const idleSheepAction2 = mixer11.clipAction(idleSheepClip2);
   idleSheepAction2.play();
 });
 
-// Sheep2 
+// Sheep3
 let sheepModel3;
 const sheepLoader3 = new GLTFLoader();
 sheepLoader3.load("resources/Sheep.glb", function (sheep3) {
@@ -453,12 +452,12 @@ sheepLoader3.load("resources/Sheep.glb", function (sheep3) {
 
   const sheepClips3 = sheep3.animations;
   mixer12 = new THREE.AnimationMixer(sheepModel3); // Update the mixer with doeModel
-  const idleSheepClip3 = THREE.AnimationClip.findByName(sheepClips3, "Idle");
+  const idleSheepClip3 = THREE.AnimationClip.findByName(sheepClips3, "Armature|Idle");
   const idleSheepAction3 = mixer12.clipAction(idleSheepClip3);
   idleSheepAction3.play();
 });
 
-// Adventurer
+// Adventurer / MainPlayer
 const adventurerLoader = new GLTFLoader();
 let adventurerModel, adventurerActions;
 
@@ -475,6 +474,7 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   });
 
   adventurerBoundingBox = new THREE.Box3();
+
   // adventurerBBoxHelper = new THREE.Box3Helper(adventurerBoundingBox, 0x0000ff); // Blue for adventurer
   // scene.add(adventurerBBoxHelper);
 
@@ -504,7 +504,7 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
   createPlayer();
 });
 
-// Kaca 1
+// Kaca
 const kaca1 = new THREE.BoxGeometry(7.5, 9, 1);
 const kacaMaterial1 = new THREE.MeshPhysicalMaterial({
   color: 0x4287f5,
@@ -564,6 +564,8 @@ cube5.position.set(2.8, 16, -152.5);
 cube5.rotation.set(0, Math.PI / 2, 0);
 scene.add(cube5);
 
+
+//botol
 const bottle = new THREE.CylinderGeometry(0.5, 0.5, 10, 8);
 const bottleMaterial = new THREE.MeshPhysicalMaterial({
   color: 0x00ffff,
@@ -578,6 +580,7 @@ const waterBottle = new THREE.Mesh(bottle, bottleMaterial);
 waterBottle.position.set(0, 0, 68);
 scene.add(waterBottle);
 
+//atas body botol
 const bottleTop = new THREE.CylinderGeometry(0.25, 0.5, 1, 8);
 const bottleTopMaterial = new THREE.MeshPhysicalMaterial({
   color: 0x00ffff,
@@ -592,6 +595,7 @@ const waterBottleTop = new THREE.Mesh(bottleTop, bottleTopMaterial);
 waterBottleTop.position.set(0, 5.5, 68);
 scene.add(waterBottleTop);
 
+//tutup botol
 const bottleCap = new THREE.CylinderGeometry(0.25, 0.25, 0.25, 8);
 const bottleCapMaterial = new THREE.MeshBasicMaterial({
   color: new THREE.Color(1, 1, 1),
@@ -688,6 +692,7 @@ rvLoader.load("resources/RV.glb", function (RV) {
   rvBoundingBox = new THREE.Box3();
   enviromentBoundingBox.push(rvBoundingBox);
 
+  //target spotlight rv
   const target = new THREE.Object3D();
   target.position.set(-30, -5, -60)
   scene.add(target)
@@ -748,8 +753,8 @@ function createPlayer() {
   player = new Player(
     new ThirdPersonCamera(
       camera,
-      new THREE.Vector3(0, 17, -15.5),
-      new THREE.Vector3(0, 0, 0)
+      new THREE.Vector3(0, 16, -15.5),
+      new THREE.Vector3(0, 16, 0)
     ),
     new PlayerController(),
     scene,
@@ -759,9 +764,9 @@ function createPlayer() {
     renderer,
     enviromentBoundingBox
   );
-  mainPlayer = player;
+  mainPlayer = player; // untuk switch player-ghostplayer
 }
-
+//object transparant untuk dijadikan model
 const ghostGeometry = new THREE.BoxGeometry(10, 20, 10);
 const ghostMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
@@ -769,18 +774,17 @@ const ghostMaterial = new THREE.MeshBasicMaterial({
 });
 const ghostModel = new THREE.Mesh(ghostGeometry, ghostMaterial);
 
-ghostModel.position.set(0, 0, 0);
 
 function createGhostPlayer() {
   ghostPlayer = new Ghost(
     new GhostCamera(
       camera,
-      new THREE.Vector3(0, 17, -15.5),
-      new THREE.Vector3(0, 17, -0.5)
+      new THREE.Vector3(0, 16, -15.5),
+      new THREE.Vector3(0, 16, 0)
     ),
     new GhostController(),
     scene,
-    50,
+    50, //speed lebih cepat
     ghostModel,
     renderer
   );
@@ -788,7 +792,7 @@ function createGhostPlayer() {
 
 createGhostPlayer();
 
-window.addEventListener("keydown", (event) => {
+window.addEventListener("keydown", (event) => { //switch player-ghostplayer
   if (event.key === "p") {
     if (player === ghostPlayer) {
       console.log("player");
@@ -810,7 +814,11 @@ plane.rotation.x = -Math.PI / 2;
 scene.add(plane);
 plane.position.set(0, 3.2, 0);
 
-// Daynight color
+// Light main
+const ambientLight = new THREE.AmbientLight(0xe6eaf0, 0.8);
+scene.add(ambientLight);
+
+// Day-night color
 const dayColor = new THREE.Color(0xe6eaf0);
 const nightColor = new THREE.Color(0x000000);
 const dayAmbientLightColor = new THREE.Color(0xe6eaf0);
@@ -820,10 +828,7 @@ const nightDirectionalLightColor = new THREE.Color(0x1b1b1c);
 const cycleDuration = 300; // Duration of a full day-night cycle in seconds
 let cycleTime = 0;
 
-// Light
-const ambientLight = new THREE.AmbientLight(0xe6eaf0, 0.8);
-scene.add(ambientLight);
-
+//light day-night
 const dLight = new THREE.DirectionalLight(0x47596b, 4); // White light
 dLight.position.set(0, 200, 50);
 dLight.castShadow = true;
@@ -837,12 +842,13 @@ dLight.shadow.camera.top = 270;
 dLight.shadow.camera.bottom = -270;
 scene.add(dLight);
 
-// Others
+// fog
 scene.fog = new THREE.Fog(0x88939e, 50, 120);
 let stagSpeed = 0.1;
 let foxSpeed = 0.5;
 let rotateStag = false;
-// Resize
+
+// Resize halaman 
 window.addEventListener("resize", () => {
   sizes.height = window.innerHeight;
   sizes.width = window.innerWidth;
@@ -874,7 +880,7 @@ function animate() {
     // Check if player is defined before updating
     player.update(delta);
     player.camera.updateHeadBob_(delta);
-    console.log(player)
+    // console.log(player)
   }
 
   // Update day-night cycle
@@ -942,7 +948,7 @@ function animate() {
   // Update bounding boxes and helpers for the adventurer
   if (adventurerModel && adventurerBoundingBox) {
     adventurerBoundingBox.setFromObject(adventurerModel);
-    scene.remove(adventurerBBoxHelper);
+    // scene.remove(adventurerBBoxHelper);
     // adventurerBBoxHelper = new THREE.Box3Helper(
     //   adventurerBoundingBox,
     //   0x0000ff
