@@ -24,7 +24,7 @@ export class Player {
     this.currentRotation = new THREE.Euler(0, 0, 0);
     this.rotationVector = new THREE.Vector3();
     this.cameraBaseOffset = new THREE.Vector3(0, 16, -15.5); // For TPP
-    this.cameraHeadOffset = new THREE.Vector3(0, 16, 0); // For FPP
+    this.cameraHeadOffset = new THREE.Vector3(0, 16, 5); // For FPP
     this.zoomLevel = 0;
     this.zoomIncrement = 5;
     this.camera.positionOffset = this.cameraBaseOffset.clone(); //offset posisi & orientasi relative camera sesuai dengan player
@@ -100,6 +100,7 @@ export class Player {
     }
     if (this.controller.keys["backward"]) {
       direction.z -= this.speed * dt;
+      headBobActive_ = true;
     }
     // console.log(direction.z);
     if (this.controller.keys["left"]) {
@@ -123,6 +124,9 @@ export class Player {
       this.camera.positionOffset.copy(this.cameraBaseOffset); // Set to camerabase for TPP
       this.cameraRotationZ = 0;
     }
+    // Define the limits for the camera rotation
+    const maxRotationY = Math.PI / 4; // 45 degrees in either direction
+
     if (
       this.controller.keys["rotateLeft"] ||
       this.controller.keys["rotateRight"]
@@ -130,8 +134,16 @@ export class Player {
       this.cameraRotationY += this.controller.keys["rotateLeft"]
         ? this.rotationSpeed * dt
         : -this.rotationSpeed * dt;
+      if (this.isFpp) {
+        // Clamp the rotation to the defined limits
+        this.cameraRotationY = THREE.MathUtils.clamp(
+          this.cameraRotationY,
+          -maxRotationY,
+          maxRotationY
+        );
+      }
     } else {
-      this.cameraRotationY = THREE.MathUtils.lerp(this.cameraRotationY, 0, 0.1); // Reset camera rotation smooth 
+      this.cameraRotationY = THREE.MathUtils.lerp(this.cameraRotationY, 0, 0.1); // Reset camera rotation smoothly
     }
 
     if (this.controller.keys["zoomIn"] || this.controller.keys["zoomOut"]) {
@@ -153,7 +165,7 @@ export class Player {
         const zoomedOffset = new THREE.Vector3(
           0,
           16 + zoomFactor * this.xLevel,
-          0 - zoomFactor // kedepan belakang
+          5  - zoomFactor // kedepan belakang
         );
         this.camera.positionOffset.copy(zoomedOffset);
       }
@@ -411,7 +423,7 @@ export class ThirdPersonCamera {
       new THREE.Vector3(0, 1, 0),
       rotation.y + cameraRotationY
     );
-    temp.add(target); 
+    temp.add(target);
     this.camera.position.copy(temp);
     if (!isZooming) {
       //ngeprevent look at target saat zooming

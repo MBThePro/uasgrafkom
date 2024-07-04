@@ -66,10 +66,10 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       childBoundingBox.max.multiply(forestModel.scale);
       childBoundingBox.min.add(forestModel.position);
       childBoundingBox.max.add(forestModel.position);
-      childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
+      // childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
 
       // console.log(childBoundingBox.max.x)
-      console.log(child.parent.name)
+      // console.log(child.parent.name)
       // console.log(child)
       // scene.add(childBBoxHelper)
 
@@ -87,7 +87,7 @@ forestLoader.load("resources/Environment.glb", function (forest) {
         !(child.parent.name == "grasses" || child.parent.name.includes("rocks") || child.parent.name == "Guitar1")
       )
         enviromentBoundingBox.push(childBoundingBox);
-      scene.add(childBBoxHelper);
+      // scene.add(childBBoxHelper);
     }
   });
 
@@ -513,8 +513,13 @@ adventurerLoader.load("resources/Adventurer.glb", (adventurer) => {
     ),
   };
 
+adventurerModel.position.set(
+-22.386977846063438, 
+3.4, 
+-115.06266135422995);
   createPlayer();
 });
+
 
 // Kaca
 const kaca1 = new THREE.BoxGeometry(7.5, 9, 1);
@@ -785,6 +790,12 @@ const ghostMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
 });
 const ghostModel = new THREE.Mesh(ghostGeometry, ghostMaterial);
+
+ghostModel.position.set( 
+8.21162717946534, 
+-4.679999999701967, 
+65.15489303701917)
+
 
 
 function createGhostPlayer() {

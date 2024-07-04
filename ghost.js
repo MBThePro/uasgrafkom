@@ -9,7 +9,7 @@ export class Ghost {
     this.adventurerModel = adventurerModel;
     this.renderer = renderer;
     this.rotationSpeed = Math.PI / 2;
-    this.currentRotation = new THREE.Euler(0, 0, 0);
+    this.currentRotation = new THREE.Euler(0, 3, 0);
     this.rotationVector = new THREE.Vector3();
     this.camera.positionOffset =  new THREE.Vector3(0, 16, -15.5); 
     this.camera.targetOffset = new THREE.Vector3(0, 16, 0);
