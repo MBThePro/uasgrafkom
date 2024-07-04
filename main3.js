@@ -69,20 +69,20 @@ forestLoader.load("resources/Environment.glb", function (forest) {
       // childBBoxHelper = new THREE.Box3Helper(childBoundingBox, 0xff0000);
 
       // console.log(childBoundingBox.max.x)
-      // console.log(child.parent.name)
+      console.log(child.parent.name)
       // console.log(child)
       // scene.add(childBBoxHelper)
 
       if (child.parent.name.includes("Tree"))
-        childBoundingBox.expandByScalar(-11);
+        childBoundingBox.expandByScalar(-7);
       if (child.parent.name.includes("WoodLog"))
         childBoundingBox.expandByScalar(-1.9);
       if (child.parent.name.includes("Tent"))
         childBoundingBox.expandByScalar(-9);
       if (child.name.includes("Resource_Rock_1"))
         childBoundingBox.expandByScalar(-6);
-    
-
+      if (child.parent.name == "Box001")
+        childBoundingBox.expandByScalar(-10);
       if (
         !(child.parent.name == "grasses" || child.parent.name.includes("rocks") || child.parent.name == "Guitar1")
       )
@@ -714,13 +714,13 @@ rvLoader.load("resources/RV.glb", function (RV) {
   target.position.set(-30, -5, -60)
   scene.add(target)
 
-  // Add spotlight to simulate car light
+  // Add spotlight for car light
   const spotLight = new THREE.SpotLight(0xffffff);
-  spotLight.position.set(20, 8, -78); // Position the spotlight in front of the RV
-  spotLight.angle = Math.PI / 9; // Set the angle of the spotlight
-  spotLight.penumbra = 0.2; // Soft edges for the spotlight
-  spotLight.decay = 0.5; // How quickly the light dims
-  spotLight.distance = 50; // The maximum range of the light
+  spotLight.position.set(20, 8, -78);
+  spotLight.angle = Math.PI / 9; 
+  spotLight.penumbra = 0.2; 
+  spotLight.decay = 0.5; 
+  spotLight.distance = 50; 
   spotLight.power = 120;
   spotLight.target = target
 
@@ -853,7 +853,7 @@ let cycleTime = 0;
 
 //light day-night
 const dLight = new THREE.DirectionalLight(0x47596b, 4); // White light
-dLight.position.set(0, 200, 50);
+dLight.position.set(0, 200, 100);
 dLight.castShadow = true;
 dLight.shadow.mapSize.width = 5000;
 dLight.shadow.mapSize.height = 5000;

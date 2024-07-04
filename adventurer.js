@@ -48,7 +48,10 @@ export class Player {
     );
     for (const boundingBox of this.enviromentBoundingBox) {
       if (playerBoundingBox.intersectsBox(boundingBox)) {
-        // console.log(boundingBox);
+        /* The above code is a JavaScript comment block that includes a single-line comment `//
+        console.log(boundingBox);`. This line of code is commented out, which means it will not be
+        executed when the code runs. The code is likely used for debugging or testing purposes and
+        has been temporarily disabled by commenting it out. */
         return true;
       }
     }
